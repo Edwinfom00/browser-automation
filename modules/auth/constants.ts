@@ -6,6 +6,12 @@ export const AUTH_ROUTES = {
 } as const
 
 
+export const LEGAL_ROUTES = {
+  terms: "/terms",
+  privacy: "/privacy",
+} as const
+
+
 export const DEFAULT_LOGIN_REDIRECT = "/"
 
 

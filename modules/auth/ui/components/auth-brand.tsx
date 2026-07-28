@@ -28,11 +28,33 @@ export function AuthLogo({
   )
 }
 
-export function AuthBrand({ className }: { className?: string }) {
+const brandLabelStyles = {
+  sm: "text-lg",
+  md: "text-2xl",
+} as const
+
+export function AuthBrand({
+  size = "md",
+  className,
+}: {
+  size?: keyof typeof sizeStyles
+  className?: string
+}) {
   return (
-    <div className={cn("flex items-center gap-4", className)}>
-      <AuthLogo />
-      <span className="text-2xl font-semibold tracking-tight">
+    <div
+      className={cn(
+        "flex items-center",
+        size === "sm" ? "gap-3" : "gap-4",
+        className
+      )}
+    >
+      <AuthLogo size={size} />
+      <span
+        className={cn(
+          "font-semibold tracking-tight",
+          brandLabelStyles[size]
+        )}
+      >
         Browser Automation
       </span>
     </div>
