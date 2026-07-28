@@ -26,4 +26,23 @@ export const signUpSchema = z.object({
     .refine((accepted) => accepted, "Accept the terms to continue"),
 })
 
+export const forgotPasswordSchema = z.object({
+  email: z.email("Enter a valid email address"),
+})
+
+export const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(
+        PASSWORD_MIN_LENGTH,
+        `Use at least ${PASSWORD_MIN_LENGTH} characters`
+      ),
+    confirmPassword: z.string().min(1, "Confirm your new password"),
+  })
+  .refine((values) => values.password === values.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Passwords don't match",
+  })
+
 export const socialProviderSchema = z.enum(["google", "github"])

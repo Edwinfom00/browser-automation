@@ -19,6 +19,10 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: true,
     minPasswordLength: 12,
+    resetPasswordTokenExpiresIn: 60 * 60,
+    // A reset is the recovery path after a suspected compromise — drop every
+    // session so an attacker's cookie dies with the old password.
+    revokeSessionsOnPasswordReset: true,
     sendResetPassword: async ({ user, url }) => {
       await sendEmail({
         to: user.email,
@@ -121,6 +125,7 @@ export const auth = betterAuth({
       "/sign-in/email": { window: 60, max: 5 },
       "/sign-up/email": { window: 60, max: 3 },
       "/request-password-reset": { window: 60, max: 3 },
+      "/reset-password": { window: 60, max: 5 },
       "/two-factor/verify-otp": { window: 60, max: 5 },
       "/two-factor/verify-totp": { window: 60, max: 5 },
       "/two-factor/verify-backup-code": { window: 60, max: 5 },
