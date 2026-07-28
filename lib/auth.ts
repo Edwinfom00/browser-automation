@@ -20,8 +20,6 @@ export const auth = betterAuth({
     requireEmailVerification: true,
     minPasswordLength: 12,
     resetPasswordTokenExpiresIn: 60 * 60,
-    // A reset is the recovery path after a suspected compromise — drop every
-    // session so an attacker's cookie dies with the old password.
     revokeSessionsOnPasswordReset: true,
     sendResetPassword: async ({ user, url }) => {
       await sendEmail({
@@ -66,7 +64,6 @@ export const auth = betterAuth({
   account: {
     accountLinking: {
       enabled: true,
-      // Only link automatically for providers that verify the email themselves.
       trustedProviders: ["github", "google"],
     },
   },
@@ -97,6 +94,15 @@ export const auth = betterAuth({
       },
     }),
     organization({
+      // Unverified accounts can't reach the app anyway, but organizations are
+      // shared surfaces — keep them behind a verified email as well.
+      allowUserToCreateOrganization: async (user) => user.emailVerified,
+      organizationLimit: 10,
+      membershipLimit: 100,
+      creatorRole: "owner",
+      invitationExpiresIn: 60 * 60 * 24 * 7,
+      invitationLimit: 50,
+      cancelPendingInvitationsOnReInvite: true,
       sendInvitationEmail: async ({ id, email, organization, inviter }) => {
         const url = `${baseURL}/accept-invitation/${id}`
         await sendEmail({
@@ -111,13 +117,11 @@ export const auth = betterAuth({
       },
     }),
     admin(),
-    // Must stay last — it forwards Set-Cookie from server actions.
     nextCookies(),
   ],
 
   rateLimit: {
     enabled: true,
-    // Persisted so limits hold across serverless instances.
     storage: "database",
     window: 10,
     max: 100,
@@ -129,6 +133,8 @@ export const auth = betterAuth({
       "/two-factor/verify-otp": { window: 60, max: 5 },
       "/two-factor/verify-totp": { window: 60, max: 5 },
       "/two-factor/verify-backup-code": { window: 60, max: 5 },
+      "/organization/create": { window: 60, max: 5 },
+      "/organization/check-slug": { window: 60, max: 30 },
     },
   },
 
