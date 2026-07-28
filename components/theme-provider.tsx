@@ -47,7 +47,8 @@ function ThemeHotkey() {
         return
       }
 
-      if (event.key.toLowerCase() !== "d") {
+      // Synthetic events (password managers, autofill) can arrive without a key.
+      if (typeof event.key !== "string" || event.key.toLowerCase() !== "d") {
         return
       }
 
