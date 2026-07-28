@@ -21,3 +21,9 @@ export type OrganizationSummary = {
   role: string
   memberCount: number
 }
+
+/** Everything the switcher needs, resolved once per request on the server. */
+export type OrganizationSwitcherData = {
+  organizations: OrganizationSummary[]
+  activeOrganizationId: string | null
+}

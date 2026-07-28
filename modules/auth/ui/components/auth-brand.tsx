@@ -1,11 +1,25 @@
-import { LuPanelsTopLeft } from "react-icons/lu"
-
 import { cn } from "@/lib/utils"
 
 const sizeStyles = {
-  sm: "size-9 rounded-[10px] [&_svg]:size-4.5",
-  md: "size-12 rounded-xl [&_svg]:size-6",
+  sm: "size-9 rounded-[10px] [&_svg]:size-5",
+  md: "size-12 rounded-xl [&_svg]:size-7",
 } as const
+
+export function PortalPathMark({ className }: { className?: string }) {
+  return (
+    <svg aria-hidden viewBox="0 0 32 32" fill="none" className={className}>
+      <path
+        fill="currentColor"
+        fillRule="evenodd"
+        d="M6 3h20a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-5v5a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3Zm4 9v12h6v-6a2 2 0 0 1 2-2h6v-4H10Z"
+        clipRule="evenodd"
+      />
+      <circle cx="9" cy="7.5" r="1.25" className="fill-violet-600" />
+      <circle cx="13" cy="7.5" r="1.25" className="fill-violet-600" />
+      <circle cx="17" cy="7.5" r="1.25" className="fill-violet-600" />
+    </svg>
+  )
+}
 
 export function AuthLogo({
   size = "md",
@@ -23,7 +37,7 @@ export function AuthLogo({
         className
       )}
     >
-      <LuPanelsTopLeft />
+      <PortalPathMark />
     </span>
   )
 }
@@ -50,10 +64,7 @@ export function AuthBrand({
     >
       <AuthLogo size={size} />
       <span
-        className={cn(
-          "font-semibold tracking-tight",
-          brandLabelStyles[size]
-        )}
+        className={cn("font-semibold tracking-tight", brandLabelStyles[size])}
       >
         Browser Automation
       </span>

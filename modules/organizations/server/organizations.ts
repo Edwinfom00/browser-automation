@@ -4,8 +4,12 @@ import { asc, count, eq, inArray } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { member, organization } from "@/lib/db/auth-schema"
 import { requireSession } from "@/modules/auth/server/session"
+import type { AuthSession } from "@/modules/auth/types"
 import { ORGANIZATION_ROUTES } from "@/modules/organizations/constants"
-import type { OrganizationSummary } from "@/modules/organizations/types"
+import type {
+  OrganizationSummary,
+  OrganizationSwitcherData,
+} from "@/modules/organizations/types"
 
 export async function listUserOrganizations(
   userId: string
@@ -49,6 +53,19 @@ export async function listUserOrganizations(
     ...membership,
     memberCount: totals.get(membership.id) ?? 1,
   }))
+}
+
+/** Pass an already-resolved session to avoid a second lookup per request. */
+export async function getOrganizationSwitcherData(
+  session?: AuthSession
+): Promise<OrganizationSwitcherData> {
+  const resolved = session ?? (await requireSession())
+  const organizations = await listUserOrganizations(resolved.user.id)
+
+  return {
+    organizations,
+    activeOrganizationId: resolved.session.activeOrganizationId ?? null,
+  }
 }
 
 export async function getActiveOrganizationId(): Promise<string | null> {
