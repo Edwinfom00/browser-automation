@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 
+import { sanitizeRedirect } from "@/modules/auth/lib/redirect"
 import { requireAnonymous } from "@/modules/auth/server/session"
 import { LoginView } from "@/modules/auth/ui/views/login-view"
 
@@ -8,8 +9,14 @@ export const metadata: Metadata = {
   description: "Sign in to continue building workflows.",
 }
 
-export default async function LoginPage() {
-  await requireAnonymous()
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirectTo?: string }>
+}) {
+  const redirectTo = sanitizeRedirect((await searchParams).redirectTo)
 
-  return <LoginView />
+  await requireAnonymous(redirectTo)
+
+  return <LoginView redirectTo={redirectTo} />
 }
