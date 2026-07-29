@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { tasks } from "@trigger.dev/sdk"
 import { and, eq } from "drizzle-orm"
 
 import { db } from "@/lib/db"
@@ -17,15 +18,19 @@ import type {
   CreateWorkflowInput,
   DeleteWorkflowInput,
   RenameWorkflowInput,
+  RunWorkflowInput,
   WorkflowActionResult,
   WorkflowErrorCode,
+  WorkflowRunHandle,
   WorkflowSummary,
 } from "@/modules/workflows/types"
 import {
   createWorkflowSchema,
   deleteWorkflowSchema,
   renameWorkflowSchema,
+  runWorkflowSchema,
 } from "@/modules/workflows/validators"
+import type { helloWorldTask } from "@/trigger/example"
 
 type WorkflowActionFailure = { data: null; error: { code: WorkflowErrorCode; message: string } }
 
@@ -201,4 +206,52 @@ export async function deleteWorkflow(
   revalidateWorkflows()
 
   return { data: deleted, error: null }
+}
+
+export async function runWorkflowAction(
+  input: RunWorkflowInput
+): Promise<WorkflowActionResult<WorkflowRunHandle>> {
+  const resolved = await resolveWorkflowContext()
+
+  if (resolved.error) {
+    return resolved
+  }
+
+  const parsed = runWorkflowSchema.safeParse(input)
+
+  if (!parsed.success) {
+    return failure("WORKFLOW_NOT_FOUND")
+  }
+
+  const [workflow] = await db
+    .select({ id: workflows.id, name: workflows.name })
+    .from(workflows)
+    .where(
+      and(
+        eq(workflows.id, parsed.data.workflowId),
+        eq(workflows.organizationId, resolved.context.organizationId)
+      )
+    )
+    .limit(1)
+
+  if (!workflow) {
+    return failure("WORKFLOW_NOT_FOUND")
+  }
+
+  try {
+   
+    const handle = await tasks.trigger<typeof helloWorldTask>(
+      "hello-world",
+      { message: `Running workflow ${workflow.name}` },
+      { tags: [`workflow_${workflow.id}`, `org_${resolved.context.organizationId}`] }
+    )
+
+    return {
+      data: { runId: handle.id, publicAccessToken: handle.publicAccessToken },
+      error: null,
+    }
+  } catch (error) {
+    console.error("Failed to trigger workflow run", error)
+    return failure("WORKFLOW_RUN_FAILED")
+  }
 }

@@ -7,6 +7,7 @@ import type {
   createWorkflowSchema,
   deleteWorkflowSchema,
   renameWorkflowSchema,
+  runWorkflowSchema,
 } from "@/modules/workflows/validators"
 
 export type CreateWorkflowInput = z.infer<typeof createWorkflowSchema>
@@ -14,6 +15,8 @@ export type CreateWorkflowInput = z.infer<typeof createWorkflowSchema>
 export type RenameWorkflowInput = z.infer<typeof renameWorkflowSchema>
 
 export type DeleteWorkflowInput = z.infer<typeof deleteWorkflowSchema>
+
+export type RunWorkflowInput = z.infer<typeof runWorkflowSchema>
 
 export type CreateWorkflowFieldErrors = FieldErrors<CreateWorkflowInput>
 
@@ -28,6 +31,17 @@ export type WorkflowSummary = {
 }
 
 export type WorkflowDetail = Workflow
+
+export type WorkflowRunHandle = {
+  runId: string
+  publicAccessToken: string
+}
+
+// Shape written by the task via `metadata.set(...)`, read back over realtime.
+export type WorkflowRunProgress = {
+  label?: string
+  progress?: number
+}
 
 export type WorkflowErrorCode = keyof typeof WORKFLOW_ERROR_MESSAGES
 

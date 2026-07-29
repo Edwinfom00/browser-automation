@@ -1,4 +1,4 @@
-import { logger, task, wait } from "@trigger.dev/sdk";
+import { logger, metadata, task, wait } from "@trigger.dev/sdk";
 
 export const helloWorldTask = task({
   id: "hello-world",
@@ -7,7 +7,16 @@ export const helloWorldTask = task({
   run: async (payload: { message?: string }, { ctx }) => {
     logger.log("Hello, world!", { payload, ctx });
 
-    await wait.for({ seconds: 5 });
+    // metadata is streamed to any subscriber (see useRealtimeRun in the UI)
+    metadata.set("label", "Preparing").set("progress", 10);
+
+    await wait.for({ seconds: 2 });
+
+    metadata.set("label", "Running steps").set("progress", 55);
+
+    await wait.for({ seconds: 3 });
+
+    metadata.set("label", "Finishing up").set("progress", 100);
 
     return {
       message: "Task Finished",

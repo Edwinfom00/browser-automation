@@ -36,3 +36,7 @@ export const renameWorkflowSchema = z.object({
 export const deleteWorkflowSchema = z.object({
   workflowId: workflowIdSchema,
 })
+
+export const runWorkflowSchema = z.object({
+  workflowId: workflowIdSchema,
+})
