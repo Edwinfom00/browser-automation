@@ -5,7 +5,7 @@ import {
   getWorkflow,
   requireWorkflow,
 } from "@/modules/workflows/server/workflows"
-import { WorkflowView } from "@/modules/workflows/ui/views/workflow-view"
+import { WorkflowShell } from "@/modules/workflows/ui/components/workflow-shell"
 
 type WorkflowPageProps = {
   params: Promise<{ workflowId: string }>
@@ -28,7 +28,7 @@ export async function generateMetadata({
 
 export default async function WorkflowPage({ params }: WorkflowPageProps) {
   const { workflowId } = await params
-  const workflow = await requireWorkflow(workflowId)
+  await requireWorkflow(workflowId)
 
-  return <WorkflowView workflow={workflow} />
+  return <WorkflowShell workflowId={workflowId} />
 }
