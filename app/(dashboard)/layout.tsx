@@ -38,9 +38,9 @@ export default async function DashboardLayout({
       />
 
       <SidebarInset className="min-h-0 overflow-hidden border shadow-none!">
-        <header className="flex h-14 shrink-0 items-center gap-2 px-4 md:hidden">
+        {/* <header className="flex h-14 shrink-0 items-center gap-2 px-4 md:hidden">
           <SidebarTrigger className="text-muted-foreground" />
-        </header>
+        </header> */}
 
         <main className="flex flex-1 flex-col p-6 sm:p-8">{children}</main>
       </SidebarInset>
