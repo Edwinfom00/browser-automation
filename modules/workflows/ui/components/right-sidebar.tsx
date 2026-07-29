@@ -22,6 +22,7 @@ import { ResizablePanel } from "@/components/ui/resizable"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 
+import { useAddNode } from "@/modules/workflows/hooks/use-add-node"
 import {
   nodeRegistry,
   type NodeDefinition,
@@ -138,10 +139,7 @@ const sections: { kind: StepNodeKind; label: string }[] = [
 const definitions = Object.values(nodeRegistry)
 
 function Palette() {
-  const add = (type: NodeType) => {
-    // TODO: add the clicked node to the canvas (one trigger max).
-    void type
-  }
+  const add = useAddNode()
 
   return (
     <Section title="Toolbar">

@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { ReactFlowProvider } from "@xyflow/react"
 
 import { getLiveblocks } from "@/lib/liveblocks"
 import { requireActiveOrganization } from "@/modules/organizations/server/organizations"
@@ -40,9 +41,12 @@ export default async function WorkflowPage({ params }: WorkflowPageProps) {
     },
   })
 
+
   return (
-    <Room roomId={workflow.id}>
-      <WorkflowShell workflowId={workflowId} />
-    </Room>
+    <ReactFlowProvider>
+      <Room roomId={workflow.id}>
+        <WorkflowShell workflowId={workflowId} />
+      </Room>
+    </ReactFlowProvider>
   )
 }
