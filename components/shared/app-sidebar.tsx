@@ -7,15 +7,18 @@ import {
 } from "@/components/ui/sidebar"
 import type { OrganizationSummary } from "@/modules/organizations/types"
 import { OrganizationUserMenu } from "@/modules/organizations/ui/components/organization-user-menu"
+import type { WorkflowSummary } from "@/modules/workflows/types"
 import { WorkflowNav } from "@/modules/workflows/ui/components/workflow-nav"
 
 export function AppSidebar({
   organizations,
   activeOrganizationId,
+  workflows,
   user,
 }: {
   organizations: OrganizationSummary[]
   activeOrganizationId?: string | null
+  workflows: WorkflowSummary[]
   user: {
     name: string
     email: string
@@ -30,7 +33,7 @@ export function AppSidebar({
       />
 
       <SidebarContent>
-        <WorkflowNav />
+        <WorkflowNav workflows={workflows} />
       </SidebarContent>
 
       <SidebarFooter className="p-2 group-data-[collapsible=icon]:items-center">
