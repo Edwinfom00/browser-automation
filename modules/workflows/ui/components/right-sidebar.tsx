@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useState } from "react"
+import { useOnSelectionChange, useReactFlow } from "@xyflow/react"
 import { MoreHorizontal, Play, Trash2 } from "lucide-react"
 
 import {
@@ -23,6 +24,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 
 import { useAddNode } from "@/modules/workflows/hooks/use-add-node"
+import {
+  useSelectedNode,
+  type SelectedNode,
+} from "@/modules/workflows/hooks/use-selected-node"
 import {
   nodeRegistry,
   type NodeDefinition,
@@ -91,7 +96,9 @@ function FieldInput({
 }
 
 
-function Inspector({ node }: { node: StepNodeType | undefined }) {
+function Inspector({ node }: { node: SelectedNode | null }) {
+  const { updateNodeData } = useReactFlow<StepNodeType>()
+
   if (!node) {
     return (
       <Section title="Editor">
@@ -117,10 +124,11 @@ function Inspector({ node }: { node: StepNodeType | undefined }) {
               <FieldInput
                 field={field}
                 value={values[field.key] ?? ""}
-                onChange={(value) => {
-                  // TODO: save the edit back onto the selected node.
-                  void value
-                }}
+                onChange={(value) =>
+                  updateNodeData(node.id, (current) => ({
+                    values: { ...current.data.values, [field.key]: value },
+                  }))
+                }
               />
             </div>
           ))
@@ -221,11 +229,15 @@ function RunButton() {
 
 export function RightSidebar() {
   const [tab, setTab] = useState("toolbar")
+  const selected = useSelectedNode()
 
-  // TODO: read the currently selected node from React Flow.
-  const selected: StepNodeType | undefined = undefined
+  const onChange = useCallback(({ nodes }: { nodes: StepNodeType[] }) => {
+    if (nodes.length > 0) {
+      setTab("editor")
+    }
+  }, [])
 
-  // TODO: auto-switch to the Editor tab when the selection changes.
+  useOnSelectionChange<StepNodeType>({ onChange })
 
   return (
     <ResizablePanel

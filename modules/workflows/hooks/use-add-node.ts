@@ -1,7 +1,12 @@
 "use client"
 
 import { useCallback } from "react"
-import { useReactFlow, useStoreApi } from "@xyflow/react"
+import {
+  useReactFlow,
+  useStore,
+  type ReactFlowState,
+  type XYPosition,
+} from "@xyflow/react"
 import { toast } from "sonner"
 
 import {
@@ -12,6 +17,21 @@ import {
 
 
 const NODE_HALF_SIZE = { width: 100, height: 24 }
+
+
+function selectDropPosition(state: ReactFlowState): XYPosition {
+  const [offsetX, offsetY, zoom] = state.transform
+
+  return {
+    x: (state.width / 2 - offsetX) / zoom - NODE_HALF_SIZE.width,
+    y: (state.height / 2 - offsetY) / zoom - NODE_HALF_SIZE.height,
+  }
+}
+
+
+function isSamePosition(a: XYPosition, b: XYPosition) {
+  return a.x === b.x && a.y === b.y
+}
 
 
 function nextTitle(nodes: StepNodeType[], type: NodeType) {
@@ -34,7 +54,7 @@ function nextTitle(nodes: StepNodeType[], type: NodeType) {
 
 
 export function useAddNode() {
-  const store = useStoreApi()
+  const position = useStore(selectDropPosition, isSamePosition)
   const { getNodes, addNodes } = useReactFlow<StepNodeType>()
 
   return useCallback(
@@ -47,16 +67,10 @@ export function useAddNode() {
         return
       }
 
-      const { width, height, transform } = store.getState()
-      const [offsetX, offsetY, zoom] = transform
-
       addNodes({
         id: crypto.randomUUID(),
         type: "step",
-        position: {
-          x: (width / 2 - offsetX) / zoom - NODE_HALF_SIZE.width,
-          y: (height / 2 - offsetY) / zoom - NODE_HALF_SIZE.height,
-        },
+        position,
         data: {
           type,
           kind,
@@ -65,6 +79,6 @@ export function useAddNode() {
         },
       })
     },
-    [addNodes, getNodes, store]
+    [addNodes, getNodes, position]
   )
 }
