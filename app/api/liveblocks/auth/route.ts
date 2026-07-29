@@ -24,6 +24,7 @@ export async function POST(): Promise<Response> {
   const { status, body } = await getLiveblocks().identifyUser(
     {
       userId: session.user.id,
+      organizationId,
       groupIds: [organizationId],
     },
     {
