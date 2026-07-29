@@ -19,6 +19,7 @@
   "dependencies": {
     "@base-ui/react": "^1.6.0",
     "@shadcn/react": "^0.2.1",
+    "@trigger.dev/sdk": "4.5.8",
     "better-auth": "^1.6.25",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -50,6 +51,7 @@
   "devDependencies": {
     "@better-auth/cli": "^1.4.21",
     "@tailwindcss/postcss": "^4",
+    "@trigger.dev/build": "4.5.8",
     "@types/node": "^20",
     "@types/pg": "^8.20.0",
     "@types/react": "^19",
