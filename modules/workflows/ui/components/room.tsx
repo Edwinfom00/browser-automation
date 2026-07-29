@@ -7,18 +7,6 @@ import {
   ClientSideSuspense,
 } from "@liveblocks/react/suspense"
 
-function getPublicApiKey() {
-  const key = process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY
-
-  if (!key) {
-    throw new Error("Missing NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY")
-  }
-
-  return key
-}
-
-const publicApiKey = getPublicApiKey()
-
 export function Room({
   roomId,
   children,
@@ -27,7 +15,7 @@ export function Room({
   children: ReactNode
 }) {
   return (
-    <LiveblocksProvider throttle={16} publicApiKey={publicApiKey}>
+    <LiveblocksProvider throttle={16} authEndpoint="/api/liveblocks/auth">
       <RoomProvider id={roomId}>
         <ClientSideSuspense fallback={<div>Loading…</div>}>
           {children}

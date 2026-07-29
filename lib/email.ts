@@ -2,11 +2,7 @@ import { Resend } from "resend"
 
 let client: Resend | undefined
 
-/**
- * Constructed lazily: the Resend constructor throws when the key is missing,
- * which would break any tooling that only needs to import the auth config
- * (the Better Auth CLI, for one).
- */
+
 function getResend() {
   if (!client) {
     if (!process.env.RESEND_API_KEY) {
@@ -33,10 +29,7 @@ export async function sendEmail({ to, subject, html }: SendEmailArgs) {
   }
 }
 
-/**
- * Minimal transactional shell. Auth emails are the first thing a user sees,
- * so keep them plain text-ish and legible in every client.
- */
+
 export function emailLayout({
   heading,
   body,

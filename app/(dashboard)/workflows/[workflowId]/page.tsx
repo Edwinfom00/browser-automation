@@ -5,6 +5,7 @@ import {
   getWorkflow,
   requireWorkflow,
 } from "@/modules/workflows/server/workflows"
+import { ensureWorkflowRoom } from "@/modules/workflows/server/rooms"
 import { WorkflowShell } from "@/modules/workflows/ui/components/workflow-shell"
 import { Room } from "@/modules/workflows/ui/components/room"
 
@@ -29,7 +30,9 @@ export async function generateMetadata({
 
 export default async function WorkflowPage({ params }: WorkflowPageProps) {
   const { workflowId } = await params
-  await requireWorkflow(workflowId)
+  const workflow = await requireWorkflow(workflowId)
+
+  await ensureWorkflowRoom(workflow.id, workflow.organizationId)
 
   return (
     <Room roomId={workflowId}>
