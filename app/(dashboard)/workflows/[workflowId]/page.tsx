@@ -6,6 +6,7 @@ import {
   requireWorkflow,
 } from "@/modules/workflows/server/workflows"
 import { WorkflowShell } from "@/modules/workflows/ui/components/workflow-shell"
+import { Room } from "@/modules/workflows/ui/components/room"
 
 type WorkflowPageProps = {
   params: Promise<{ workflowId: string }>
@@ -30,5 +31,9 @@ export default async function WorkflowPage({ params }: WorkflowPageProps) {
   const { workflowId } = await params
   await requireWorkflow(workflowId)
 
-  return <WorkflowShell workflowId={workflowId} />
+  return (
+    <Room roomId={workflowId}>
+      <WorkflowShell workflowId={workflowId} />
+    </Room>
+  )
 }

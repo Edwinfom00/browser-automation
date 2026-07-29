@@ -1,26 +1,24 @@
 "use client"
 
-import { useCallback, useState, useSyncExternalStore } from "react"
+import { useSyncExternalStore } from "react"
 import { useTheme } from "next-themes"
 import {
-  addEdge,
-  applyEdgeChanges,
-  applyNodeChanges,
   ConnectionLineType,
   Controls,
   ReactFlow,
   type DefaultEdgeOptions,
   type Edge,
-  type EdgeChange,
-  type NodeChange,
   type NodeTypes,
-  type Connection,
 } from "@xyflow/react"
+import { useLiveblocksFlow , Cursors} from "@liveblocks/react-flow"
 
 import type { StepNodeType } from "@/modules/workflows/nodes/node-registry"
 import { StepNode } from "@/modules/workflows/ui/components/step-node"
 
 import "@xyflow/react/dist/style.css"
+import "@liveblocks/react-ui/styles.css";
+import "@liveblocks/react-flow/styles.css";
+
 
 
 const nodeTypes: NodeTypes = {
@@ -65,26 +63,18 @@ function useMounted() {
 export function WorkflowCanvas() {
   const { resolvedTheme } = useTheme()
   const mounted = useMounted()
-  const [nodes, setNodes] = useState<StepNodeType[]>(initialNodes)
-  const [edges, setEdges] = useState<Edge[]>(initialEdges)
-
-  const onNodesChange = useCallback(
-    (changes: NodeChange<StepNodeType>[]) =>
-      setNodes((current) => applyNodeChanges(changes, current)),
-    [],
-  )
-
-  const onEdgesChange = useCallback(
-    (changes: EdgeChange[]) =>
-      setEdges((current) => applyEdgeChanges(changes, current)),
-    [],
-  )
-
-  const onConnect = useCallback(
-    (connection: Connection) =>
-      setEdges((current) => addEdge(connection, current)),
-    [],
-  )
+  const {
+    nodes,
+    edges,
+    onNodesChange,
+    onEdgesChange,
+    onConnect,
+    onDelete,
+  } = useLiveblocksFlow<StepNodeType, Edge>({
+    suspense: true,
+    nodes: { initial: initialNodes },
+    edges: { initial: initialEdges },
+  })
 
   return (
     <div className="size-full">
@@ -95,6 +85,7 @@ export function WorkflowCanvas() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onDelete={onDelete}
         connectionLineType={ConnectionLineType.SmoothStep}
         connectionLineStyle={connectionLineStyle}
         defaultEdgeOptions={defaultEdgeOptions}
@@ -105,6 +96,7 @@ export function WorkflowCanvas() {
         maxZoom={1}
       >
         <Controls />
+        <Cursors />
       </ReactFlow>
     </div>
   )
