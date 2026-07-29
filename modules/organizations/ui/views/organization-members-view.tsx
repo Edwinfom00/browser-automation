@@ -7,8 +7,12 @@ import { MembersTable } from "@/modules/organizations/ui/components/members-tabl
 export function OrganizationMembersView({
   members,
   invitations,
+  inviteCode,
   viewer,
-}: Pick<OrganizationManageData, "members" | "invitations" | "viewer">) {
+}: Pick<
+  OrganizationManageData,
+  "members" | "invitations" | "inviteCode" | "viewer"
+>) {
   return (
     <div className="flex flex-col gap-10">
       <section className="flex flex-col gap-5">
@@ -26,7 +30,9 @@ export function OrganizationMembersView({
             </p>
           </div>
 
-          {viewer.canInviteMembers ? <InviteMemberDialog /> : null}
+          {viewer.canInviteMembers ? (
+            <InviteMemberDialog inviteCode={inviteCode} />
+          ) : null}
         </div>
 
         <MembersTable members={members} viewer={viewer} />

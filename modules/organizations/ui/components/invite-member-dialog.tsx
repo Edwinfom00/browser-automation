@@ -1,7 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { LuLoaderCircle, LuTriangleAlert, LuUserPlus } from "react-icons/lu"
+import {
+  LuHash,
+  LuLoaderCircle,
+  LuMail,
+  LuTriangleAlert,
+  LuUserPlus,
+} from "react-icons/lu"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -15,15 +21,24 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  ASSIGNABLE_ORGANIZATION_ROLES,
-  ORGANIZATION_ROLE_META,
-} from "@/modules/organizations/constants"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useInviteMember } from "@/modules/organizations/hooks/use-organization-invitations"
-import type { AssignableOrganizationRole } from "@/modules/organizations/types"
+import type {
+  ActiveInviteCode,
+  AssignableOrganizationRole,
+} from "@/modules/organizations/types"
+import { InviteCodePanel } from "@/modules/organizations/ui/components/invite-code-panel"
+import { RoleRadioGroup } from "@/modules/organizations/ui/components/role-radio-group"
 
-export function InviteMemberDialog() {
+type InviteMethod = "email" | "code"
+
+export function InviteMemberDialog({
+  inviteCode,
+}: {
+  inviteCode: ActiveInviteCode | null
+}) {
   const [isOpen, setIsOpen] = useState(false)
+  const [method, setMethod] = useState<InviteMethod>("email")
   const [email, setEmail] = useState("")
   const [role, setRole] = useState<AssignableOrganizationRole>("member")
 
@@ -59,125 +74,116 @@ export function InviteMemberDialog() {
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-lg">
-        <form
-          noValidate
-          onSubmit={(event) => {
-            event.preventDefault()
-            void submit({ email, role })
-          }}
-          className="flex flex-col gap-6"
-        >
+        <div className="flex flex-col gap-6">
           <DialogHeader>
             <DialogTitle>Invite a teammate</DialogTitle>
             <DialogDescription>
-              We&apos;ll email them a link that expires in seven days. They join
-              once they accept it.
+              Email them a private link, or share a code anyone can type to join.
             </DialogDescription>
           </DialogHeader>
 
-          {error ? (
-            <div
-              role="alert"
-              className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
-            >
-              <LuTriangleAlert className="mt-0.5 size-4 shrink-0" />
-              <span>{error}</span>
-            </div>
-          ) : null}
+          <Tabs
+            value={method}
+            onValueChange={(value) => setMethod(value as InviteMethod)}
+            className="gap-6"
+          >
+            <TabsList className="w-full">
+              <TabsTrigger value="email" disabled={isPending}>
+                <LuMail />
+                Email invite
+              </TabsTrigger>
+              <TabsTrigger value="code" disabled={isPending}>
+                <LuHash />
+                Invite code
+              </TabsTrigger>
+            </TabsList>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="invite-email">Email address</Label>
-            <Input
-              id="invite-email"
-              type="email"
-              autoComplete="off"
-              placeholder="teammate@company.com"
-              value={email}
-              disabled={isPending}
-              aria-invalid={Boolean(fieldErrors.email)}
-              aria-describedby={
-                fieldErrors.email ? "invite-email-error" : undefined
-              }
-              onChange={(event) => {
-                setEmail(event.target.value)
-                clearFieldError("email")
-              }}
-              className="h-11"
-            />
-            {fieldErrors.email ? (
-              <p id="invite-email-error" className="text-sm text-destructive">
-                {fieldErrors.email}
-              </p>
-            ) : null}
-          </div>
-
-          <fieldset className="flex flex-col gap-2" disabled={isPending}>
-            <legend className="mb-2 text-sm font-medium">Role</legend>
-
-            {ASSIGNABLE_ORGANIZATION_ROLES.map((option) => (
-              <label
-                key={option}
-                className={
-                  "flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition-colors " +
-                  (role === option
-                    ? "border-violet-500 bg-violet-500/[0.06]"
-                    : "border-border hover:border-foreground/20 hover:bg-muted/40")
-                }
+            <TabsContent value="email">
+              <form
+                noValidate
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  void submit({ email, role })
+                }}
+                className="flex flex-col gap-6"
               >
-                <input
-                  type="radio"
+                <p className="text-sm text-muted-foreground">
+                  We&apos;ll email them a link that expires in seven days. They
+                  join once they accept it.
+                </p>
+
+                {error ? (
+                  <div
+                    role="alert"
+                    className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
+                  >
+                    <LuTriangleAlert className="mt-0.5 size-4 shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                ) : null}
+
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="invite-email">Email address</Label>
+                  <Input
+                    id="invite-email"
+                    type="email"
+                    autoComplete="off"
+                    placeholder="teammate@company.com"
+                    value={email}
+                    disabled={isPending}
+                    aria-invalid={Boolean(fieldErrors.email)}
+                    aria-describedby={
+                      fieldErrors.email ? "invite-email-error" : undefined
+                    }
+                    onChange={(event) => {
+                      setEmail(event.target.value)
+                      clearFieldError("email")
+                    }}
+                    className="h-11"
+                  />
+                  {fieldErrors.email ? (
+                    <p
+                      id="invite-email-error"
+                      className="text-sm text-destructive"
+                    >
+                      {fieldErrors.email}
+                    </p>
+                  ) : null}
+                </div>
+
+                <RoleRadioGroup
                   name="invite-role"
-                  value={option}
-                  checked={role === option}
-                  onChange={() => setRole(option)}
-                  className="sr-only"
+                  legend="Role"
+                  value={role}
+                  onChange={setRole}
+                  disabled={isPending}
                 />
 
-                <span
-                  aria-hidden
-                  className={
-                    "mt-0.5 grid size-4.5 shrink-0 place-items-center rounded-full border-2 transition-colors " +
-                    (role === option ? "border-violet-500" : "border-border")
-                  }
-                >
-                  <span
-                    className={
-                      "size-2 rounded-full bg-violet-500 transition-opacity " +
-                      (role === option ? "opacity-100" : "opacity-0")
-                    }
-                  />
-                </span>
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isPending}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Cancel
+                  </Button>
 
-                <span className="flex min-w-0 flex-col">
-                  <span className="text-sm font-medium">
-                    {ORGANIZATION_ROLE_META[option].label}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {ORGANIZATION_ROLE_META[option].description}
-                  </span>
-                </span>
-              </label>
-            ))}
-          </fieldset>
+                  <Button type="submit" disabled={isPending}>
+                    {isPending ? (
+                      <LuLoaderCircle className="size-4 animate-spin" />
+                    ) : null}
+                    Send invitation
+                  </Button>
+                </DialogFooter>
+              </form>
+            </TabsContent>
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isPending}
-              onClick={() => setIsOpen(false)}
-            >
-              Cancel
-            </Button>
-
-            <Button type="submit" disabled={isPending}>
-              {isPending ? (
-                <LuLoaderCircle className="size-4 animate-spin" />
-              ) : null}
-              Send invitation
-            </Button>
-          </DialogFooter>
-        </form>
+            <TabsContent value="code">
+              <InviteCodePanel code={inviteCode} />
+            </TabsContent>
+          </Tabs>
+        </div>
       </DialogContent>
     </Dialog>
   )

@@ -1,5 +1,6 @@
 export const ORGANIZATION_ROUTES = {
   select: "/organizations",
+  join: "/join",
   settings: "/settings/organization",
   members: "/settings/members",
 } as const
@@ -25,6 +26,17 @@ export const ORGANIZATION_LIMIT = 10
 export const ORGANIZATION_MEMBERSHIP_LIMIT = 100
 
 export const ORGANIZATION_INVITATION_LIMIT = 50
+
+
+export const INVITE_CODE_LENGTH = 6
+
+
+export const INVITE_CODE_EXPIRES_IN_DAYS = 7
+
+
+export const INVITE_CODE_MAX_ATTEMPTS = 10
+
+export const INVITE_CODE_ATTEMPT_WINDOW_MS = 10 * 60 * 1000
 
 
 export const ORGANIZATION_ROLES = ["owner", "admin", "member"] as const
@@ -60,6 +72,10 @@ export const ORGANIZATION_ERROR_MESSAGES = {
   INVITATION_LIMIT_REACHED: `Organizations are capped at ${ORGANIZATION_INVITATION_LIMIT} pending invitations.`,
   ALREADY_A_MEMBER: "That person is already in this organization.",
   ALREADY_INVITED: "That person already has a pending invitation.",
+  INVITE_CODE_NOT_FOUND:
+    "That code isn't valid any more. Ask an admin for a fresh one.",
+  TOO_MANY_CODE_ATTEMPTS:
+    "Too many wrong codes. Wait a few minutes and try again.",
   WRONG_RECIPIENT: "This invitation was sent to a different email address.",
   EMAIL_VERIFICATION_REQUIRED: "Verify your email address to continue.",
   VALIDATION_ERROR: "Check the highlighted fields and try again.",

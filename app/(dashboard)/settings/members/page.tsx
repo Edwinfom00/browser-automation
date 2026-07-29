@@ -10,12 +10,14 @@ export const metadata: Metadata = {
 }
 
 export default async function OrganizationMembersPage() {
-  const { members, invitations, viewer } = await getOrganizationManageData()
+  const { members, invitations, inviteCode, viewer } =
+    await getOrganizationManageData()
 
   return (
     <OrganizationMembersView
       members={members}
       invitations={invitations}
+      inviteCode={viewer.canInviteMembers ? inviteCode : null}
       viewer={viewer}
     />
   )

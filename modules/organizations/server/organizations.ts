@@ -8,6 +8,7 @@ import type { AuthSession } from "@/modules/auth/types"
 import { ORGANIZATION_ROUTES } from "@/modules/organizations/constants"
 import { roles } from "@/modules/organizations/lib/permissions"
 import { primaryRole } from "@/modules/organizations/lib/roles"
+import { getActiveInviteCode } from "@/modules/organizations/server/invite-codes"
 import type {
   IncomingInvitation,
   OrganizationInvitation,
@@ -278,9 +279,7 @@ export function resolveViewer(
     canDeleteOrganization: roleCan(role, { organization: ["delete"] }),
     canManageMembers: roleCan(role, { member: ["update", "delete"] }),
     canInviteMembers: roleCan(role, { invitation: ["create"] }),
-    // Only an owner may hand the owner role to somebody else.
     canTransferOwnership: isOwner,
-    // The last owner has to pass the torch before walking out.
     canLeave: !(isOwner && ownerCount <= 1),
   }
 }
@@ -289,9 +288,10 @@ export async function getOrganizationManageData(): Promise<OrganizationManageDat
   const session = await requireSession()
   const active = await requireActiveOrganization()
 
-  const [members, invitations] = await Promise.all([
+  const [members, invitations, inviteCode] = await Promise.all([
     listOrganizationMembers(active.id),
     listOrganizationInvitations(active.id),
+    getActiveInviteCode(active.id),
   ])
 
   const membership = members.find(
@@ -314,6 +314,7 @@ export async function getOrganizationManageData(): Promise<OrganizationManageDat
     ),
     members,
     invitations,
+    inviteCode,
     ownerCount,
   }
 }

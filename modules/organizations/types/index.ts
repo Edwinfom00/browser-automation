@@ -1,6 +1,11 @@
 import type { z } from "zod"
 
-import type { Invitation, Member, User } from "@/lib/db/schema"
+import type {
+  Invitation,
+  Member,
+  OrganizationInviteCode,
+  User,
+} from "@/lib/db/schema"
 import type { FieldErrors } from "@/modules/auth/types"
 import type {
   ASSIGNABLE_ORGANIZATION_ROLES,
@@ -8,8 +13,10 @@ import type {
   ORGANIZATION_ROLES,
 } from "@/modules/organizations/constants"
 import type {
+  createInviteCodeSchema,
   createOrganizationSchema,
   inviteMemberSchema,
+  joinWithCodeSchema,
   selectOrganizationSchema,
   updateMemberRoleSchema,
   updateOrganizationSchema,
@@ -28,6 +35,10 @@ export type UpdateOrganizationInput = z.infer<typeof updateOrganizationSchema>
 
 export type InviteMemberInput = z.infer<typeof inviteMemberSchema>
 
+export type CreateInviteCodeInput = z.infer<typeof createInviteCodeSchema>
+
+export type JoinWithCodeInput = z.infer<typeof joinWithCodeSchema>
+
 export type UpdateMemberRoleInput = z.infer<typeof updateMemberRoleSchema>
 
 export type CreateOrganizationFieldErrors = FieldErrors<CreateOrganizationInput>
@@ -35,6 +46,8 @@ export type CreateOrganizationFieldErrors = FieldErrors<CreateOrganizationInput>
 export type UpdateOrganizationFieldErrors = FieldErrors<UpdateOrganizationInput>
 
 export type InviteMemberFieldErrors = FieldErrors<InviteMemberInput>
+
+export type JoinWithCodeFieldErrors = FieldErrors<JoinWithCodeInput>
 
 
 export type OrganizationSummary = {
@@ -63,6 +76,12 @@ export type OrganizationInvitation = Pick<
   inviter: Pick<User, "id" | "name" | "email">
 }
 
+
+
+export type ActiveInviteCode = Pick<
+  OrganizationInviteCode,
+  "id" | "code" | "role" | "expiresAt" | "usedCount" | "createdAt"
+>
 
 export type IncomingInvitation = Pick<
   Invitation,
@@ -94,6 +113,7 @@ export type OrganizationManageData = {
   viewer: OrganizationViewer
   members: OrganizationMember[]
   invitations: OrganizationInvitation[]
+  inviteCode: ActiveInviteCode | null
   ownerCount: number
 }
 

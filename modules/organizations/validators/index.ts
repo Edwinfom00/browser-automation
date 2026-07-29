@@ -2,6 +2,7 @@ import { z } from "zod"
 
 import {
   ASSIGNABLE_ORGANIZATION_ROLES,
+  INVITE_CODE_LENGTH,
   ORGANIZATION_NAME_MAX_LENGTH,
   ORGANIZATION_NAME_MIN_LENGTH,
   ORGANIZATION_ROLES,
@@ -9,7 +10,7 @@ import {
   ORGANIZATION_SLUG_MIN_LENGTH,
 } from "@/modules/organizations/constants"
 
-/** Lowercase words joined by single hyphens — what ends up in the workspace URL. */
+
 export const organizationSlugSchema = z
   .string()
   .trim()
@@ -66,6 +67,22 @@ export const invitationIdSchema = z.string().min(1, "Invitation not found")
 export const inviteMemberSchema = z.object({
   email: z.email("Enter a valid email address").trim().toLowerCase(),
   role: assignableRoleSchema,
+})
+
+export const inviteCodeSchema = z
+  .string()
+  .trim()
+  .regex(
+    new RegExp(`^\\d{${INVITE_CODE_LENGTH}}$`),
+    `Enter the ${INVITE_CODE_LENGTH}-digit code`
+  )
+
+export const createInviteCodeSchema = z.object({
+  role: assignableRoleSchema,
+})
+
+export const joinWithCodeSchema = z.object({
+  code: inviteCodeSchema,
 })
 
 export const updateMemberRoleSchema = z.object({

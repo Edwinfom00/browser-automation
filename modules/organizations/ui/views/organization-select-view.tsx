@@ -1,6 +1,8 @@
-import { LuBuilding2, LuPlus } from "react-icons/lu"
+import Link from "next/link"
+import { LuBuilding2, LuHash, LuPlus } from "react-icons/lu"
 
 import type { AuthUser } from "@/modules/auth/types"
+import { ORGANIZATION_ROUTES } from "@/modules/organizations/constants"
 import type {
   IncomingInvitation,
   OrganizationSummary,
@@ -95,6 +97,33 @@ export function OrganizationSelectView({
             </div>
 
             <CreateOrganizationForm />
+
+            <div className="flex items-center gap-4">
+              <span className="h-px flex-1 bg-border" />
+              <span className="text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
+                or
+              </span>
+              <span className="h-px flex-1 bg-border" />
+            </div>
+
+            <Link
+              href={ORGANIZATION_ROUTES.join}
+              className="group flex items-center gap-4 rounded-xl border border-border px-4 py-3.5 transition-colors hover:border-foreground/20 hover:bg-muted/40"
+            >
+              <span
+                aria-hidden
+                className="grid size-10 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground transition-colors group-hover:text-foreground [&_svg]:size-5"
+              >
+                <LuHash />
+              </span>
+
+              <span className="flex min-w-0 flex-col">
+                <span className="text-sm font-medium">Join with a code</span>
+                <span className="text-sm text-muted-foreground">
+                  Someone shared a six-digit code with you.
+                </span>
+              </span>
+            </Link>
 
             <OrganizationTeamPreview className="pt-2" />
           </div>

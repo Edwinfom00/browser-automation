@@ -56,6 +56,19 @@ Rules of the flow:
 - **Ownership transfers in two steps** (promote, then step down) because the
   plugin allows several owners and blocks the last one from demoting itself.
 
+There are two ways into a workspace, and an admin picks between them in the
+same dialog:
+
+1. **Email invitation** — Better Auth's `invitation` table, untouched.
+2. **Join code** — a six-digit code in `organization_invite_codes`, this app's
+   own table (`lib/db/schema.ts`). It is the one place organization state is
+   written with Drizzle instead of `auth.api.*`, because the plugin has no
+   equivalent. Membership itself still goes through `auth.api.addMember`, so
+   the membership limit and duplicate-member guard stay the plugin's job.
+   Generating rotates: the previous row is revoked in the same transaction, and
+   a partial unique index on `(code) WHERE revoked_at IS NULL` is what
+   guarantees a live code maps to exactly one workspace.
+
 # ReactFlow — don't trust training data
 
 This project uses ReactFlow (React Flow / `@xyflow/react`) for the canvas. Its
