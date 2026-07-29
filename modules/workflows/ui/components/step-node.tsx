@@ -8,9 +8,10 @@ import {
 import { cn } from "@/lib/utils"
 
 function StepNodeComponent({ data, selected }: NodeProps<StepNodeType>) {
-  const { type, kind, title } = data
+  const { type, kind, title, values } = data
   const def = nodeRegistry[type]
   const Icon = def.icon
+  const fields = def.fields.filter((f) => values[f.key])
 
 
   const hasTarget = kind !== "trigger"
@@ -18,7 +19,7 @@ function StepNodeComponent({ data, selected }: NodeProps<StepNodeType>) {
   return (
     <div
       className={cn(
-        "min-w-50 max-w-80 rounded-(--radius) border-2 border-border bg-card text-card-foreground",
+        "min-w-50 max-w-80 rounded-lg border-2 border-border bg-card text-card-foreground",
         selected && "ring-2 ring-ring ring-offset-2 ring-offset-background"
       )}
     >
@@ -42,7 +43,25 @@ function StepNodeComponent({ data, selected }: NodeProps<StepNodeType>) {
         </div>
         <span className="text-sm font-semibold">{title}</span>
       </div>
-
+      {fields.length > 0 && (
+        <>
+          <div className="border-t border-border">
+            <div className="flex flex-col gap-1.5 px-3 py-2.5">
+              {fields.map((field) => (
+                <div
+                  key={field.key}
+                  className="flex items-center justify-between gap-4 text-xs"
+                >
+                  <span className="shrink-0 text-muted-foreground">
+                    {field.label}
+                  </span>
+                  <span className="truncate font-medium">{values[field.key]}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
       <Handle
         type="source"
         position={Position.Right}
