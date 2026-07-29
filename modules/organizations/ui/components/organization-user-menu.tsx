@@ -16,18 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { signOut } from "@/lib/auth-client"
 import { AUTH_ROUTES } from "@/modules/auth/constants"
-
-function initials(name: string, email: string): string {
-  const source = name.trim() || email
-
-  return source
-    .split(/[\s@._-]+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase()
-}
+import { initials } from "@/modules/organizations/lib/initials"
 
 export type OrganizationUserMenuVariant = "default" | "compact"
 

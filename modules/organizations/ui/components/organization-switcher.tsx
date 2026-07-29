@@ -10,6 +10,7 @@ import {
   LuPlus,
   LuSettings,
   LuTriangleAlert,
+  LuUsers,
 } from "react-icons/lu"
 
 import { Button } from "@/components/ui/button"
@@ -22,20 +23,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
-import {
-  ORGANIZATION_ROLE_LABELS,
-  ORGANIZATION_ROUTES,
-} from "@/modules/organizations/constants"
+import { ORGANIZATION_ROUTES } from "@/modules/organizations/constants"
 import { useSwitchOrganization } from "@/modules/organizations/hooks/use-switch-organization"
+import { roleLabel } from "@/modules/organizations/lib/roles"
 import type { OrganizationSummary } from "@/modules/organizations/types"
 import { OrganizationLogo } from "@/modules/organizations/ui/components/organization-logo"
-
-function roleLabel(role: string): string {
-  return (
-    ORGANIZATION_ROLE_LABELS[role] ??
-    role.charAt(0).toUpperCase() + role.slice(1)
-  )
-}
 
 
 export type OrganizationSwitcherVariant = "default" | "compact" | "icon"
@@ -256,9 +248,16 @@ export function OrganizationSwitcher({
         </DropdownMenuItem>
 
         <DropdownMenuItem asChild>
-          <Link href={ORGANIZATION_ROUTES.select}>
+          <Link href={ORGANIZATION_ROUTES.members}>
+            <LuUsers />
+            Members and invitations
+          </Link>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem asChild>
+          <Link href={ORGANIZATION_ROUTES.settings}>
             <LuSettings />
-            Manage organizations
+            Organization settings
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>

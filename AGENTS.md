@@ -31,6 +31,31 @@ Three edits, all under `modules/workflows/nodes/`:
 The run task and the canvas step node are registry-driven — never touch them to add
 a node.
 
+# Organization roles and permissions
+
+Roles are Better Auth's organization plugin roles, extended in one shared file:
+`modules/organizations/lib/permissions.ts`. It exports `statement` (the plugin's
+`defaultStatements` plus this app's `workflow` resource) and `roles`
+(owner/admin/member). Both `lib/auth.ts` and `lib/auth-client.ts` import it, so
+`hasPermission` on the server and `checkRolePermission` in the browser can never
+disagree. To add a permission, add the action to `statement` and grant it in the
+roles that should have it — nothing else needs touching.
+
+Rules of the flow:
+
+- **Mutations go through `auth.api.*`**, never straight to the `member` /
+  `invitation` tables. The plugin owns the last-owner guard, the membership and
+  invitation limits, the permission checks and the invitation emails.
+  `modules/organizations/server/actions.ts` wraps every call and maps the
+  plugin's error codes onto `ORGANIZATION_ERROR_MESSAGES`.
+- **Reads go through Drizzle** (`modules/organizations/server/organizations.ts`)
+  so a page renders from one round trip.
+- **The UI hides what the server would reject.** `resolveViewer()` computes the
+  viewer's capabilities from their role; components branch on those booleans
+  rather than re-deriving role checks.
+- **Ownership transfers in two steps** (promote, then step down) because the
+  plugin allows several owners and blocks the last one from demoting itself.
+
 # ReactFlow — don't trust training data
 
 This project uses ReactFlow (React Flow / `@xyflow/react`) for the canvas. Its

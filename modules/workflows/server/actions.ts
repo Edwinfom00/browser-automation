@@ -8,6 +8,7 @@ import { db } from "@/lib/db"
 import { member } from "@/lib/db/auth-schema"
 import { workflows } from "@/lib/db/schema"
 import { getSession } from "@/modules/auth/server/session"
+import { roleCan } from "@/modules/organizations/server/organizations"
 import {
   WORKFLOW_ERROR_MESSAGES,
   WORKFLOW_LIMIT,
@@ -59,12 +60,15 @@ const summaryColumns = {
 type WorkflowContext = {
   userId: string
   organizationId: string
+  role: string
 }
 
+type WorkflowPermission = "create" | "update" | "delete" | "run"
 
-async function resolveWorkflowContext(): Promise<
-  { context: WorkflowContext; error: null } | WorkflowActionFailure
-> {
+
+async function resolveWorkflowContext(
+  permission: WorkflowPermission
+): Promise<{ context: WorkflowContext; error: null } | WorkflowActionFailure> {
   const session = await getSession()
 
   if (!session) {
@@ -78,7 +82,7 @@ async function resolveWorkflowContext(): Promise<
   }
 
   const [membership] = await db
-    .select({ id: member.id })
+    .select({ id: member.id, role: member.role })
     .from(member)
     .where(
       and(
@@ -92,7 +96,18 @@ async function resolveWorkflowContext(): Promise<
     return failure("FORBIDDEN")
   }
 
-  return { context: { userId: session.user.id, organizationId }, error: null }
+  if (!roleCan(membership.role, { workflow: [permission] })) {
+    return failure("FORBIDDEN")
+  }
+
+  return {
+    context: {
+      userId: session.user.id,
+      organizationId,
+      role: membership.role,
+    },
+    error: null,
+  }
 }
 
 
@@ -103,7 +118,7 @@ function revalidateWorkflows(): void {
 export async function createWorkflow(
   input: CreateWorkflowInput = {}
 ): Promise<WorkflowActionResult<WorkflowSummary>> {
-  const resolved = await resolveWorkflowContext()
+  const resolved = await resolveWorkflowContext("create")
 
   if (resolved.error) {
     return resolved
@@ -142,7 +157,7 @@ export async function createWorkflow(
 export async function renameWorkflow(
   input: RenameWorkflowInput
 ): Promise<WorkflowActionResult<WorkflowSummary>> {
-  const resolved = await resolveWorkflowContext()
+  const resolved = await resolveWorkflowContext("update")
 
   if (resolved.error) {
     return resolved
@@ -177,7 +192,7 @@ export async function renameWorkflow(
 export async function deleteWorkflow(
   input: DeleteWorkflowInput
 ): Promise<WorkflowActionResult<{ id: string }>> {
-  const resolved = await resolveWorkflowContext()
+  const resolved = await resolveWorkflowContext("delete")
 
   if (resolved.error) {
     return resolved
@@ -211,7 +226,7 @@ export async function deleteWorkflow(
 export async function runWorkflowAction(
   input: RunWorkflowInput
 ): Promise<WorkflowActionResult<WorkflowRunHandle>> {
-  const resolved = await resolveWorkflowContext()
+  const resolved = await resolveWorkflowContext("run")
 
   if (resolved.error) {
     return resolved

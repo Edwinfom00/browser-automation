@@ -1,14 +1,7 @@
 import { cn } from "@/lib/utils"
-import { ORGANIZATION_ROLE_LABELS } from "@/modules/organizations/constants"
+import { roleLabel } from "@/modules/organizations/lib/roles"
 import type { OrganizationSummary } from "@/modules/organizations/types"
 import { OrganizationLogo } from "@/modules/organizations/ui/components/organization-logo"
-
-function roleLabel(role: string): string {
-  return (
-    ORGANIZATION_ROLE_LABELS[role] ??
-    role.charAt(0).toUpperCase() + role.slice(1)
-  )
-}
 
 export function OrganizationOption({
   organization,

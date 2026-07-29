@@ -1,8 +1,12 @@
 import { LuBuilding2, LuPlus } from "react-icons/lu"
 
 import type { AuthUser } from "@/modules/auth/types"
-import type { OrganizationSummary } from "@/modules/organizations/types"
+import type {
+  IncomingInvitation,
+  OrganizationSummary,
+} from "@/modules/organizations/types"
 import { CreateOrganizationForm } from "@/modules/organizations/ui/components/create-organization-form"
+import { IncomingInvitations } from "@/modules/organizations/ui/components/incoming-invitations"
 import { OrganizationList } from "@/modules/organizations/ui/components/organization-list"
 import { OrganizationTeamPreview } from "@/modules/organizations/ui/components/organization-team-preview"
 import { OrganizationTopbar } from "@/modules/organizations/ui/components/organization-topbar"
@@ -31,10 +35,12 @@ function EmptyOrganizations() {
 export function OrganizationSelectView({
   user,
   organizations,
+  invitations,
   activeOrganizationId,
 }: {
   user: AuthUser
   organizations: OrganizationSummary[]
+  invitations: IncomingInvitation[]
   activeOrganizationId?: string | null
 }) {
   const hasOrganizations = organizations.length > 0
@@ -54,6 +60,8 @@ export function OrganizationSelectView({
                 Select where you want to continue.
               </p>
             </div>
+
+            <IncomingInvitations invitations={invitations} />
 
             {hasOrganizations ? (
               <OrganizationList

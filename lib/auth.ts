@@ -5,6 +5,13 @@ import { admin, organization, twoFactor } from "better-auth/plugins"
 
 import { db } from "@/lib/db"
 import { emailLayout, sendEmail } from "@/lib/email"
+import {
+  acceptInvitationRoute,
+  ORGANIZATION_INVITATION_LIMIT,
+  ORGANIZATION_LIMIT,
+  ORGANIZATION_MEMBERSHIP_LIMIT,
+} from "@/modules/organizations/constants"
+import { ac, roles } from "@/modules/organizations/lib/permissions"
 
 const appName = "Browser Automation"
 
@@ -94,23 +101,24 @@ export const auth = betterAuth({
       },
     }),
     organization({
-      // Unverified accounts can't reach the app anyway, but organizations are
-      // shared surfaces — keep them behind a verified email as well.
       allowUserToCreateOrganization: async (user) => user.emailVerified,
-      organizationLimit: 10,
-      membershipLimit: 100,
+      organizationLimit: ORGANIZATION_LIMIT,
+      membershipLimit: ORGANIZATION_MEMBERSHIP_LIMIT,
       creatorRole: "owner",
+      ac,
+      roles,
       invitationExpiresIn: 60 * 60 * 24 * 7,
-      invitationLimit: 50,
+      invitationLimit: ORGANIZATION_INVITATION_LIMIT,
       cancelPendingInvitationsOnReInvite: true,
-      sendInvitationEmail: async ({ id, email, organization, inviter }) => {
-        const url = `${baseURL}/accept-invitation/${id}`
+      requireEmailVerificationOnInvitation: true,
+      sendInvitationEmail: async ({ id, email, organization, inviter, role }) => {
+        const url = `${baseURL}${acceptInvitationRoute(id)}`
         await sendEmail({
           to: email,
           subject: `Join ${organization.name} on ${appName}`,
           html: emailLayout({
             heading: `Join ${organization.name}`,
-            body: `${inviter.user.name || inviter.user.email} invited you to join ${organization.name} on ${appName}.`,
+            body: `${inviter.user.name || inviter.user.email} invited you to join <strong>${organization.name}</strong> on ${appName} as ${role === "admin" ? "an" : "a"} ${role}. This invitation expires in seven days.`,
             action: { label: "Accept invitation", url },
           }),
         })
@@ -135,6 +143,14 @@ export const auth = betterAuth({
       "/two-factor/verify-backup-code": { window: 60, max: 5 },
       "/organization/create": { window: 60, max: 5 },
       "/organization/check-slug": { window: 60, max: 30 },
+      "/organization/invite-member": { window: 60, max: 10 },
+      "/organization/accept-invitation": { window: 60, max: 10 },
+      "/organization/reject-invitation": { window: 60, max: 10 },
+      "/organization/update": { window: 60, max: 10 },
+      "/organization/delete": { window: 60, max: 3 },
+      "/organization/update-member-role": { window: 60, max: 20 },
+      "/organization/remove-member": { window: 60, max: 20 },
+      "/organization/leave": { window: 60, max: 5 },
     },
   },
 

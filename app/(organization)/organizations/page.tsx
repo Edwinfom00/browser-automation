@@ -1,7 +1,10 @@
 import type { Metadata } from "next"
 
 import { requireSession } from "@/modules/auth/server/session"
-import { listUserOrganizations } from "@/modules/organizations/server/organizations"
+import {
+  listIncomingInvitations,
+  listUserOrganizations,
+} from "@/modules/organizations/server/organizations"
 import { OrganizationSelectView } from "@/modules/organizations/ui/views/organization-select-view"
 
 export const metadata: Metadata = {
@@ -12,12 +15,17 @@ export const metadata: Metadata = {
 
 export default async function OrganizationsPage() {
   const session = await requireSession()
-  const organizations = await listUserOrganizations(session.user.id)
+
+  const [organizations, invitations] = await Promise.all([
+    listUserOrganizations(session.user.id),
+    listIncomingInvitations(session.user.email),
+  ])
 
   return (
     <OrganizationSelectView
       user={session.user}
       organizations={organizations}
+      invitations={invitations}
       activeOrganizationId={session.session.activeOrganizationId}
     />
   )

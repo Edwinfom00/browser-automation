@@ -1,8 +1,14 @@
 import { relations } from "drizzle-orm"
 import { index, jsonb, pgTable, text } from "drizzle-orm/pg-core"
 
-import { organization } from "./auth-schema"
+import { invitation, member, organization, user } from "./auth-schema"
 import { id, timestamps } from "./helpers"
+
+
+export type User = typeof user.$inferSelect
+export type Organization = typeof organization.$inferSelect
+export type Member = typeof member.$inferSelect
+export type Invitation = typeof invitation.$inferSelect
 
 
 export type WorkflowGraph = {
