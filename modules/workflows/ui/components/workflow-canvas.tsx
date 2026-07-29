@@ -8,9 +8,11 @@ import {
   ReactFlow,
   type DefaultEdgeOptions,
   type Edge,
+  Panel,
   type NodeTypes,
 } from "@xyflow/react"
-import { useLiveblocksFlow , Cursors} from "@liveblocks/react-flow"
+import { useLiveblocksFlow, Cursors } from "@liveblocks/react-flow"
+import { AvatarStack } from "@liveblocks/react-ui"
 
 import type { StepNodeType } from "@/modules/workflows/nodes/node-registry"
 import { StepNode } from "@/modules/workflows/ui/components/step-node"
@@ -50,7 +52,7 @@ const defaultEdgeOptions: DefaultEdgeOptions = {
 }
 
 
-const subscribe = () => () => {}
+const subscribe = () => () => { }
 
 function useMounted() {
   return useSyncExternalStore(
@@ -96,6 +98,9 @@ export function WorkflowCanvas() {
         maxZoom={1}
       >
         <Controls />
+        <Panel position="top-right">
+          <AvatarStack />
+        </Panel>
         <Cursors />
       </ReactFlow>
     </div>
