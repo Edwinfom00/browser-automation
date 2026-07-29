@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import {
   LuCheck,
+  LuChevronDown,
   LuChevronsUpDown,
   LuLoaderCircle,
   LuPlus,
@@ -36,29 +37,56 @@ function roleLabel(role: string): string {
   )
 }
 
-/** Trigger shown when the session has no active organization to name yet. */
-function EmptySwitcher() {
+
+export type OrganizationSwitcherVariant = "default" | "compact" | "icon"
+
+
+function EmptySwitcher({
+  variant,
+  className,
+}: {
+  variant: OrganizationSwitcherVariant
+  className?: string
+}) {
+  const isCompact = variant === "compact"
+  const isIcon = variant === "icon"
+
   return (
     <Button
       asChild
-      variant="outline"
-      className="h-14 w-full justify-start gap-3 rounded-xl px-3 sm:w-72"
+      variant={isCompact || isIcon ? "ghost" : "outline"}
+      aria-label={isIcon ? "Select organization" : undefined}
+      className={cn(
+        isIcon && "size-8 shrink-0 justify-center rounded-lg p-0",
+        isCompact && "h-12 w-full min-w-0 justify-start gap-2 rounded-lg px-2",
+        !isCompact &&
+        !isIcon &&
+        "h-14 w-full justify-start gap-3 rounded-xl px-3 sm:w-72",
+        className
+      )}
     >
       <Link href={ORGANIZATION_ROUTES.select}>
         <span
           aria-hidden
-          className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-muted text-muted-foreground [&_svg]:size-4.5"
+          className={cn(
+            "grid shrink-0 place-items-center rounded-[10px] bg-muted text-muted-foreground",
+            isIcon ? "size-8 [&_svg]:size-4" : "size-9 [&_svg]:size-4.5"
+          )}
         >
           <LuPlus />
         </span>
-        <span className="flex min-w-0 flex-1 flex-col items-start">
-          <span className="truncate text-sm font-medium">
-            Select organization
+        {isIcon ? null : (
+          <span className="flex min-w-0 flex-1 flex-col items-start">
+            <span className="w-full truncate text-left text-sm font-medium">
+              Select organization
+            </span>
+            {isCompact ? null : (
+              <span className="truncate text-xs font-normal text-muted-foreground">
+                None active yet
+              </span>
+            )}
           </span>
-          <span className="truncate text-xs font-normal text-muted-foreground">
-            None active yet
-          </span>
-        </span>
+        )}
       </Link>
     </Button>
   )
@@ -67,22 +95,27 @@ function EmptySwitcher() {
 export function OrganizationSwitcher({
   organizations,
   activeOrganizationId,
+  variant = "default",
   className,
 }: {
   organizations: OrganizationSummary[]
   activeOrganizationId?: string | null
+  variant?: OrganizationSwitcherVariant
   className?: string
 }) {
   const { switchTo, pendingId, isPending, error, clearError } =
     useSwitchOrganization()
   const [isOpen, setIsOpen] = useState(false)
 
+  const isCompact = variant === "compact"
+  const isIcon = variant === "icon"
+
   const active = organizations.find(
     (candidate) => candidate.id === activeOrganizationId
   )
 
   if (!active) {
-    return <EmptySwitcher />
+    return <EmptySwitcher variant={variant} className={className} />
   }
 
   return (
@@ -98,9 +131,15 @@ export function OrganizationSwitcher({
     >
       <DropdownMenuTrigger asChild>
         <Button
-          variant="outline"
+          variant={isCompact || isIcon ? "ghost" : "outline"}
+          title={isIcon ? active.name : undefined}
           aria-label={`Current organization: ${active.name}. Switch organization`}
           className={cn(
+            isIcon && "size-8 shrink-0 justify-center rounded-lg p-0",
+            isCompact &&
+            "h-12 w-full min-w-0 justify-start gap-2 rounded-lg px-2",
+            !isCompact &&
+            !isIcon &&
             "h-14 w-full justify-start gap-3 rounded-xl px-3 sm:w-72",
             className
           )}
@@ -110,19 +149,29 @@ export function OrganizationSwitcher({
             name={active.name}
             logo={active.logo}
             size="sm"
+            className={cn(isIcon && "size-8 rounded-lg [&_svg]:size-4")}
           />
 
-          <span className="flex min-w-0 flex-1 flex-col items-start">
-            <span className="w-full truncate text-left text-sm font-medium">
-              {active.name}
+          {isIcon ? null : (
+            <span className="flex min-w-0 flex-1 flex-col items-start">
+              <span
+                title={isCompact ? active.name : undefined}
+                className="w-full truncate text-left text-sm font-medium"
+              >
+                {active.name}
+              </span>
+              {isCompact ? null : (
+                <span className="w-full truncate text-left text-xs font-normal text-muted-foreground">
+                  {roleLabel(active.role)} · /{active.slug}
+                </span>
+              )}
             </span>
-            <span className="w-full truncate text-left text-xs font-normal text-muted-foreground">
-              {roleLabel(active.role)} · /{active.slug}
-            </span>
-          </span>
+          )}
 
-          {isPending ? (
+          {isIcon ? null : isPending ? (
             <LuLoaderCircle className="size-4 shrink-0 animate-spin text-muted-foreground" />
+          ) : isCompact ? (
+            <LuChevronDown className="size-4 shrink-0 text-muted-foreground" />
           ) : (
             <LuChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
           )}
@@ -160,7 +209,7 @@ export function OrganizationSwitcher({
                   return
                 }
 
-                // Keep the menu open so a failed switch can report itself.
+
                 event.preventDefault()
 
                 void switchTo(organization.id).then((didSwitch) => {
