@@ -6,28 +6,37 @@ import {
   addEdge,
   applyEdgeChanges,
   applyNodeChanges,
-  Background,
   ConnectionLineType,
   Controls,
-  MiniMap,
   ReactFlow,
   type DefaultEdgeOptions,
   type Edge,
   type EdgeChange,
-  type Node,
   type NodeChange,
+  type NodeTypes,
   type Connection,
 } from "@xyflow/react"
+
+import type { StepNodeType } from "@/modules/workflows/nodes/node-registry"
+import { StepNode } from "@/modules/workflows/ui/components/step-node"
 
 import "@xyflow/react/dist/style.css"
 
 
-const initialNodes: Node[] = [
-  { id: "n1", position: { x: 0, y: 0 }, data: { label: "Node 1" } },
-  { id: "n2", position: { x: 0, y: 100 }, data: { label: "Node 2" } },
+const nodeTypes: NodeTypes = {
+  step: StepNode,
+}
+
+const initialNodes: StepNodeType[] = [
+  {
+    id: "n1",
+    type: "step",
+    position: { x: 0, y: 0 },
+    data: { type: "start", kind: "trigger", title: "Start", values: {} },
+  },
 ]
 
-const initialEdges: Edge[] = [{ id: "n1-n2", source: "n1", target: "n2" }]
+const initialEdges: Edge[] = []
 
 const connectionLineStyle = { stroke: "var(--border)" }
 
@@ -56,11 +65,11 @@ function useMounted() {
 export function WorkflowCanvas() {
   const { resolvedTheme } = useTheme()
   const mounted = useMounted()
-  const [nodes, setNodes] = useState<Node[]>(initialNodes)
+  const [nodes, setNodes] = useState<StepNodeType[]>(initialNodes)
   const [edges, setEdges] = useState<Edge[]>(initialEdges)
 
   const onNodesChange = useCallback(
-    (changes: NodeChange[]) =>
+    (changes: NodeChange<StepNodeType>[]) =>
       setNodes((current) => applyNodeChanges(changes, current)),
     [],
   )
@@ -82,6 +91,7 @@ export function WorkflowCanvas() {
       <ReactFlow
         nodes={nodes}
         edges={edges}
+        nodeTypes={nodeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
@@ -90,12 +100,11 @@ export function WorkflowCanvas() {
         defaultEdgeOptions={defaultEdgeOptions}
         colorMode={mounted && resolvedTheme === "dark" ? "dark" : "light"}
         style={flowStyle}
+        proOptions={{ hideAttribution: true }}
         fitView
         maxZoom={1}
       >
-        <Background />
         <Controls />
-        <MiniMap />
       </ReactFlow>
     </div>
   )

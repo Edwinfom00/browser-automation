@@ -314,6 +314,7 @@ export function FlowPreview({
         zoomOnPinch={false}
         zoomOnDoubleClick={false}
         preventScrolling={false}
+        proOptions={{ hideAttribution: true }}
         style={
           {
             "--xy-edge-stroke": edgeColor,
