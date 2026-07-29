@@ -46,6 +46,66 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --animate-shimmer: shimmer 1.9s cubic-bezier(0.4, 0, 0.6, 1)
+    var(--skeleton-delay, 0ms) infinite;
+  --animate-skeleton-pulse: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1)
+    var(--skeleton-delay, 0ms) infinite;
+  --animate-indeterminate: indeterminate 1.6s cubic-bezier(0.65, 0, 0.35, 1)
+    infinite;
+  --animate-breathe: breathe 2.6s ease-in-out infinite;
+  --animate-rise: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Loading motion — keep in sync with components/ui/skeleton.tsx and
+   components/shared/loading.tsx. All usages are motion-safe gated. */
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes indeterminate {
+  from {
+    transform: translateX(-100%) scaleX(0.45);
+  }
+  50% {
+    transform: translateX(20%) scaleX(0.7);
+  }
+  to {
+    transform: translateX(100%) scaleX(0.45);
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.72;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 :root {
