@@ -2,7 +2,11 @@ import type { z } from "zod"
 
 import type { Workflow } from "@/lib/db/schema"
 import type { FieldErrors } from "@/modules/auth/types"
-import type { WORKFLOW_ERROR_MESSAGES } from "@/modules/workflows/constants"
+import type {
+  WORKFLOW_ERROR_MESSAGES,
+  WORKFLOW_GRAPH_ERROR_MESSAGES,
+} from "@/modules/workflows/constants"
+import type { StepNodeType } from "@/modules/workflows/nodes/node-registry"
 import type {
   createWorkflowSchema,
   deleteWorkflowSchema,
@@ -21,6 +25,23 @@ export type RunWorkflowInput = z.infer<typeof runWorkflowSchema>
 export type CreateWorkflowFieldErrors = FieldErrors<CreateWorkflowInput>
 
 export type RenameWorkflowFieldErrors = FieldErrors<RenameWorkflowInput>
+
+
+export type { WorkflowGraph } from "@/modules/workflows/types/graph"
+
+export type WorkflowGraphIssueCode = keyof typeof WORKFLOW_GRAPH_ERROR_MESSAGES
+
+export type WorkflowGraphIssue = {
+  code: WorkflowGraphIssueCode
+  message: string
+  nodeId?: string
+  edgeId?: string
+}
+
+
+export type WorkflowGraphValidation =
+  | { ok: true; steps: StepNodeType[]; issues: [] }
+  | { ok: false; steps: null; issues: WorkflowGraphIssue[] }
 
 
 export type WorkflowSummary = {

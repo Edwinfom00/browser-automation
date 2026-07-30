@@ -25,6 +25,18 @@ export const WORKFLOW_ERROR_MESSAGES = {
 } as const
 
 
+export const WORKFLOW_GRAPH_ERROR_MESSAGES = {
+  EMPTY_GRAPH: "Add a step before running this workflow.",
+  MISSING_TRIGGER: "Add a trigger so the workflow knows where to start.",
+  MULTIPLE_TRIGGERS: "A workflow can only have one trigger.",
+  DUPLICATE_NODE_ID: "Two steps share the same id. Remove one and try again.",
+  UNKNOWN_NODE_TYPE: "This step type isn't supported anymore. Replace it.",
+  MISSING_FIELD: "Fill in the required fields on every step.",
+  DANGLING_EDGE: "A connection points to a step that no longer exists.",
+  CYCLE: "Steps can't loop back to an earlier step.",
+  DISCONNECTED_NODE: "Connect every step to the trigger.",
+} as const
+
 
 export const WORKFLOW_RUN_STATUS_LABELS: Record<string, string> = {
   WAITING_FOR_DEPLOY: "Waiting for deploy",

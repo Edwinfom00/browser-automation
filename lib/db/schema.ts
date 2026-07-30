@@ -9,6 +9,8 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core"
 
+import type { WorkflowGraph } from "@/modules/workflows/types/graph"
+
 import { invitation, member, organization, user } from "./auth-schema"
 import { id, timestamps } from "./helpers"
 
@@ -19,21 +21,7 @@ export type Member = typeof member.$inferSelect
 export type Invitation = typeof invitation.$inferSelect
 
 
-export type WorkflowGraph = {
-  nodes: Array<{
-    id: string
-    type: string
-    position: { x: number; y: number }
-    data?: Record<string, unknown>
-  }>
-  edges: Array<{
-    id: string
-    source: string
-    target: string
-    sourceHandle?: string | null
-    targetHandle?: string | null
-  }>
-}
+export type { WorkflowGraph }
 
 export const workflows = pgTable(
   "workflows",
