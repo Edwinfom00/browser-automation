@@ -1,17 +1,21 @@
 import { memo } from "react"
-import { Handle, Position, type NodeProps } from "@xyflow/react"
+import { Handle, NodeToolbar, Position, type NodeProps } from "@xyflow/react"
+import { Trash2 } from "lucide-react"
 
 import {
   nodeRegistry,
   type StepNodeType,
 } from "@/modules/workflows/nodes/node-registry"
+import { useDeleteNode } from "@/modules/workflows/hooks/use-delete-node"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-function StepNodeComponent({ data, selected }: NodeProps<StepNodeType>) {
+function StepNodeComponent({ id, data, selected }: NodeProps<StepNodeType>) {
   const { type, kind, title, values } = data
   const def = nodeRegistry[type]
   const Icon = def.icon
   const fields = def.fields.filter((f) => values[f.key])
+  const deleteNode = useDeleteNode()
 
 
   const hasTarget = kind !== "trigger"
@@ -23,6 +27,23 @@ function StepNodeComponent({ data, selected }: NodeProps<StepNodeType>) {
         selected && "ring-2 ring-ring ring-offset-2 ring-offset-background"
       )}
     >
+      <NodeToolbar
+        position={Position.Top}
+        align="end"
+        offset={8}
+        className="nodrag nopan"
+      >
+        <Button
+          size="icon-sm"
+          variant="destructive"
+          aria-label={`Delete ${title}`}
+          onClick={() => deleteNode(id)}
+          className="border border-border bg-card shadow-xs hover:bg-destructive/10"
+        >
+          <Trash2 />
+        </Button>
+      </NodeToolbar>
+
       {hasTarget && (
         <Handle
           type="target"

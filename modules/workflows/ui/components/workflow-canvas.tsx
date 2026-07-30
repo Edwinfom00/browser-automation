@@ -14,7 +14,9 @@ import {
 import { useLiveblocksFlow, Cursors } from "@liveblocks/react-flow"
 import { AvatarStack } from "@liveblocks/react-ui"
 
+import { useConfirmNodeDelete } from "@/modules/workflows/hooks/use-confirm-node-delete"
 import type { StepNodeType } from "@/modules/workflows/nodes/node-registry"
+import { DeleteNodeDialog } from "@/modules/workflows/ui/components/delete-node-dialog"
 import { StepNode } from "@/modules/workflows/ui/components/step-node"
 
 import "@xyflow/react/dist/style.css"
@@ -78,6 +80,8 @@ export function WorkflowCanvas() {
     edges: { initial: initialEdges },
   })
 
+  const { pending, onBeforeDelete, confirm, cancel } = useConfirmNodeDelete()
+
   return (
     <div className="size-full">
       <ReactFlow
@@ -88,6 +92,7 @@ export function WorkflowCanvas() {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onDelete={onDelete}
+        onBeforeDelete={onBeforeDelete}
         connectionLineType={ConnectionLineType.SmoothStep}
         connectionLineStyle={connectionLineStyle}
         defaultEdgeOptions={defaultEdgeOptions}
@@ -103,6 +108,12 @@ export function WorkflowCanvas() {
         </Panel>
         <Cursors />
       </ReactFlow>
+
+      <DeleteNodeDialog
+        pending={pending}
+        onConfirm={confirm}
+        onCancel={cancel}
+      />
     </div>
   )
 }
