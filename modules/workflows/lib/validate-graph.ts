@@ -4,6 +4,7 @@ import { WORKFLOW_GRAPH_ERROR_MESSAGES } from "@/modules/workflows/constants"
 import {
   nodeRegistry,
   type NodeType,
+  type StepNodeKind,
   type StepNodeType,
 } from "@/modules/workflows/nodes/node-registry"
 import type {
@@ -32,16 +33,24 @@ function isKnownNodeType(type: string): type is NodeType {
 
 
 
+function kindOf(node: StepNodeType): StepNodeKind | null {
+  const type = node.data.type
+  return isKnownNodeType(type) ? nodeRegistry[type].kind : null
+}
+
+
+
 const ISSUE_PRIORITY: Record<WorkflowGraphIssueCode, number> = {
   EMPTY_GRAPH: 0,
   DUPLICATE_NODE_ID: 1,
   UNKNOWN_NODE_TYPE: 2,
   MISSING_TRIGGER: 3,
-  MULTIPLE_TRIGGERS: 4,
-  CYCLE: 5,
-  DANGLING_EDGE: 6,
-  DISCONNECTED_NODE: 7,
-  MISSING_FIELD: 8,
+  MISSING_ACTION: 4,
+  MULTIPLE_TRIGGERS: 5,
+  CYCLE: 6,
+  DANGLING_EDGE: 7,
+  DISCONNECTED_NODE: 8,
+  MISSING_FIELD: 9,
 }
 
 function byPriority(a: WorkflowGraphIssue, b: WorkflowGraphIssue): number {
@@ -91,10 +100,16 @@ export function validateWorkflowGraph(
     }
   }
 
-  const triggers = nodes.filter((node) => node.data.kind === "trigger")
+  const triggers = nodes.filter((node) => kindOf(node) === "trigger")
+  const actions = nodes.filter((node) => kindOf(node) === "action")
 
   if (triggers.length === 0) {
     issues.push(issue("MISSING_TRIGGER"))
+  }
+
+ 
+  if (actions.length === 0) {
+    issues.push(issue("MISSING_ACTION"))
   }
 
   for (const extra of triggers.slice(1)) {

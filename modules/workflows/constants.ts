@@ -39,6 +39,7 @@ export const WORKFLOW_ERROR_MESSAGES = {
 export const WORKFLOW_GRAPH_ERROR_MESSAGES = {
   EMPTY_GRAPH: "Add a step before running this workflow.",
   MISSING_TRIGGER: "Add a trigger so the workflow knows where to start.",
+  MISSING_ACTION: "A trigger on its own does nothing. Add at least one action.",
   MULTIPLE_TRIGGERS: "A workflow can only have one trigger.",
   DUPLICATE_NODE_ID: "Two steps share the same id. Remove one and try again.",
   UNKNOWN_NODE_TYPE: "This step type isn't supported anymore. Replace it.",
