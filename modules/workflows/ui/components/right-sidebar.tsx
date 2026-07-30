@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ResizablePanel } from "@/components/ui/resizable"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
 import { useAddNode } from "@/modules/workflows/hooks/use-add-node"
@@ -84,7 +85,18 @@ function FieldInput({
   value: string
   onChange: (value: string) => void
 }) {
-  // TODO: support a multiline field variant (textarea).
+  if (field.multiline) {
+    return (
+      <Textarea
+        id={field.key}
+        value={value}
+        placeholder={field.placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className="max-h-64"
+      />
+    )
+  }
+
   return (
     <Input
       id={field.key}
@@ -120,6 +132,7 @@ function Inspector({ node }: { node: SelectedNode | null }) {
             <div key={field.key} className="flex flex-col gap-1.5">
               <Label htmlFor={field.key} className="text-xs">
                 {field.label}
+                {field.required && <span className="text-destructive">*</span>}
               </Label>
               <FieldInput
                 field={field}
@@ -238,6 +251,12 @@ export function RightSidebar() {
   }, [])
 
   useOnSelectionChange<StepNodeType>({ onChange })
+
+  const [prevSelected, setPrevSelected] = useState(selected?.id)
+  if (selected?.id !== prevSelected) {
+    setPrevSelected(selected?.id)
+    setTab("editor")
+  }
 
   return (
     <ResizablePanel
