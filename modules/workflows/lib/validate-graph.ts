@@ -32,6 +32,24 @@ function isKnownNodeType(type: string): type is NodeType {
 
 
 
+const ISSUE_PRIORITY: Record<WorkflowGraphIssueCode, number> = {
+  EMPTY_GRAPH: 0,
+  DUPLICATE_NODE_ID: 1,
+  UNKNOWN_NODE_TYPE: 2,
+  MISSING_TRIGGER: 3,
+  MULTIPLE_TRIGGERS: 4,
+  CYCLE: 5,
+  DANGLING_EDGE: 6,
+  DISCONNECTED_NODE: 7,
+  MISSING_FIELD: 8,
+}
+
+function byPriority(a: WorkflowGraphIssue, b: WorkflowGraphIssue): number {
+  return ISSUE_PRIORITY[a.code] - ISSUE_PRIORITY[b.code]
+}
+
+
+
 function hasMissingFields(node: StepNodeType, type: NodeType): boolean {
   return nodeRegistry[type].fields.some(
     (field) => field.required && !node.data.values[field.key]?.trim()
@@ -139,7 +157,7 @@ export function validateWorkflowGraph(
   }
 
   if (issues.length > 0) {
-    return { ok: false, steps: null, issues }
+    return { ok: false, steps: null, issues: issues.sort(byPriority) }
   }
 
   return {

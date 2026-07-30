@@ -1,8 +1,9 @@
 "use client"
 
-import { useCallback, useState } from "react"
-import { useOnSelectionChange, useReactFlow } from "@xyflow/react"
-import { MoreHorizontal, Play, Trash2 } from "lucide-react"
+import { useCallback, useEffect, useState } from "react"
+import { useOnSelectionChange, useReactFlow, type Edge } from "@xyflow/react"
+import { Loader2, MoreHorizontal, Play, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 
 import {
   Accordion,
@@ -24,11 +25,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
+import { WORKFLOW_RUN_STATUS_LABELS } from "@/modules/workflows/constants"
 import { useAddNode } from "@/modules/workflows/hooks/use-add-node"
+import { useRunWorkflow } from "@/modules/workflows/hooks/use-run-workflow"
 import {
   useSelectedNode,
   type SelectedNode,
 } from "@/modules/workflows/hooks/use-selected-node"
+import { serializeWorkflowGraph } from "@/modules/workflows/lib/serialize-graph"
+import { validateWorkflowGraph } from "@/modules/workflows/lib/validate-graph"
 import {
   nodeRegistry,
   type NodeDefinition,
@@ -237,18 +242,57 @@ function ActionsMenu({ workflowId }: { workflowId: string }) {
   )
 }
 
-// Kicks off a run of the current workflow.
-function RunButton() {
+
+function RunButton({ workflowId }: { workflowId: string }) {
+  const { getNodes, getEdges } = useReactFlow<StepNodeType, Edge>()
+
+  const { start, isPending, error, clearError } = useRunWorkflow({
+    onFinished: (status) => {
+      const label = WORKFLOW_RUN_STATUS_LABELS[status] ?? status
+
+      if (status === "COMPLETED") {
+        toast.success("Workflow run completed")
+        return
+      }
+
+      toast.error(`Workflow run ${label.toLowerCase()}`)
+    },
+  })
+
+ 
+  useEffect(() => {
+    if (!error) {
+      return
+    }
+
+    toast.error(error)
+    clearError()
+  }, [error, clearError])
+
+  const run = useCallback(async () => {
+   
+    const graph = serializeWorkflowGraph(getNodes(), getEdges())
+    const validation = validateWorkflowGraph(graph)
+
+    if (!validation.ok) {
+      const [first, ...rest] = validation.issues
+
+      toast.error(first?.message ?? "This workflow can't run yet", {
+        description:
+          rest.length > 0
+            ? `And ${rest.length} other ${rest.length === 1 ? "issue" : "issues"} to fix.`
+            : undefined,
+      })
+      return
+    }
+
+    await start(workflowId)
+  }, [getEdges, getNodes, start, workflowId])
+
   return (
-    <Button
-      size="sm"
-      variant="secondary"
-      onClick={() => {
-        // TODO: validate the graph and run the workflow (toggle to Stop while running).
-      }}
-    >
-      <Play fill="primary" />
-      Run
+    <Button size="sm" variant="secondary" disabled={isPending} onClick={run}>
+      {isPending ? <Loader2 className="animate-spin" /> : <Play fill="primary" />}
+      {isPending ? "Running" : "Run"}
     </Button>
   )
 }
@@ -282,7 +326,7 @@ export function RightSidebar({ workflowId }: { workflowId: string }) {
       <Tabs value={tab} onValueChange={setTab} className="size-full gap-0">
         <div className="flex items-center justify-between border-b border-border p-2">
           <ActionsMenu workflowId={workflowId} />
-          <RunButton />
+          <RunButton workflowId={workflowId} />
         </div>
         <TabsList className="m-2 w-fit bg-background">
           <TabsTrigger
