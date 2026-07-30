@@ -8,6 +8,7 @@ import {
   ReactFlow,
   type DefaultEdgeOptions,
   type Edge,
+  type EdgeTypes,
   Panel,
   type NodeTypes,
 } from "@xyflow/react"
@@ -17,6 +18,7 @@ import { AvatarStack } from "@liveblocks/react-ui"
 import { useConfirmNodeDelete } from "@/modules/workflows/hooks/use-confirm-node-delete"
 import type { StepNodeType } from "@/modules/workflows/nodes/node-registry"
 import { DeleteNodeDialog } from "@/modules/workflows/ui/components/delete-node-dialog"
+import { StepEdge } from "@/modules/workflows/ui/components/step-edge"
 import { StepNode } from "@/modules/workflows/ui/components/step-node"
 
 import "@xyflow/react/dist/style.css"
@@ -27,6 +29,12 @@ import "@liveblocks/react-flow/styles.css";
 
 const nodeTypes: NodeTypes = {
   step: StepNode,
+}
+
+
+const edgeTypes: EdgeTypes = {
+  step: StepEdge,
+  smoothstep: StepEdge,
 }
 
 const initialNodes: StepNodeType[] = [
@@ -49,7 +57,7 @@ const flowStyle = {
 } as React.CSSProperties
 
 const defaultEdgeOptions: DefaultEdgeOptions = {
-  type: ConnectionLineType.SmoothStep,
+  type: "step",
   style: { stroke: "var(--border)" },
 }
 
@@ -88,6 +96,7 @@ export function WorkflowCanvas() {
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
