@@ -10,6 +10,7 @@ import {
 } from "@/modules/workflows/constants"
 import { runWorkflowAction } from "@/modules/workflows/server/actions"
 import type {
+  WorkflowGraph,
   WorkflowRunHandle,
   WorkflowRunProgress,
 } from "@/modules/workflows/types"
@@ -69,10 +70,10 @@ export function useRunWorkflow({
   }, [run])
 
   const start = useCallback(
-    async (workflowId: string) => {
+    async (workflowId: string, graph: WorkflowGraph) => {
       setError(null)
 
-      const parsed = runWorkflowSchema.safeParse({ workflowId })
+      const parsed = runWorkflowSchema.safeParse({ workflowId, graph })
 
       if (!parsed.success) {
         setError(parsed.error.issues[0]?.message ?? null)

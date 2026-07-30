@@ -286,7 +286,7 @@ function RunButton({ workflowId }: { workflowId: string }) {
       return
     }
 
-    await start(workflowId)
+    await start(workflowId, graph)
   }, [getEdges, getNodes, start, workflowId])
 
   return (

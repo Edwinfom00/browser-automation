@@ -76,7 +76,7 @@ type WorkflowPermission = "create" | "update" | "delete" | "run"
 
 
 async function resolveWorkflowContext(
-  permission: WorkflowPermission
+  permission: WorkflowPermission | WorkflowPermission[]
 ): Promise<{ context: WorkflowContext; error: null } | WorkflowActionFailure> {
   const session = await getSession()
 
@@ -105,7 +105,9 @@ async function resolveWorkflowContext(
     return failure("FORBIDDEN")
   }
 
-  if (!roleCan(membership.role, { workflow: [permission] })) {
+  const permissions = Array.isArray(permission) ? permission : [permission]
+
+  if (!roleCan(membership.role, { workflow: permissions })) {
     return failure("FORBIDDEN")
   }
 
@@ -130,6 +132,39 @@ function workflowTag(workflowId: string): string {
 
 function orgTag(organizationId: string): string {
   return `org_${organizationId}`
+}
+
+
+async function persistWorkflowGraph(
+  workflowId: string,
+  organizationId: string,
+  graph: WorkflowGraph
+): Promise<{ workflow: WorkflowSummary; error: null } | WorkflowActionFailure> {
+  let updated: WorkflowSummary | undefined
+
+  try {
+    ;[updated] = await db
+      .update(workflows)
+      .set({ graph })
+      .where(
+        and(
+          eq(workflows.id, workflowId),
+          eq(workflows.organizationId, organizationId)
+        )
+      )
+      .returning(summaryColumns)
+  } catch (error) {
+    console.error("Failed to save a workflow graph", error)
+    return failure("WORKFLOW_SAVE_FAILED")
+  }
+
+  if (!updated) {
+    return failure("WORKFLOW_NOT_FOUND")
+  }
+
+  revalidateWorkflows()
+
+  return { workflow: updated, error: null }
 }
 
 async function retrieveRun(runId: string) {
@@ -234,33 +269,19 @@ export async function saveWorkflow(
 
   const validation = validateWorkflowGraph(graph)
 
-  let updated: WorkflowSummary | undefined
+  const saved = await persistWorkflowGraph(
+    parsed.data.workflowId,
+    resolved.context.organizationId,
+    graph
+  )
 
-  try {
-    ;[updated] = await db
-      .update(workflows)
-      .set({ graph })
-      .where(
-        and(
-          eq(workflows.id, parsed.data.workflowId),
-          eq(workflows.organizationId, resolved.context.organizationId)
-        )
-      )
-      .returning(summaryColumns)
-  } catch (error) {
-    console.error("Failed to save a workflow graph", error)
-    return failure("WORKFLOW_SAVE_FAILED")
+  if (saved.error) {
+    return saved
   }
-
-  if (!updated) {
-    return failure("WORKFLOW_NOT_FOUND")
-  }
-
-  revalidateWorkflows()
 
   return {
     data: {
-      workflow: updated,
+      workflow: saved.workflow,
       graph: { ok: validation.ok, issues: validation.issues },
     },
     error: null,
@@ -323,7 +344,7 @@ export async function deleteWorkflow(
 export async function runWorkflowAction(
   input: RunWorkflowInput
 ): Promise<WorkflowActionResult<WorkflowRunHandle>> {
-  const resolved = await resolveWorkflowContext("run")
+  const resolved = await resolveWorkflowContext(["run", "update"])
 
   if (resolved.error) {
     return resolved
@@ -332,23 +353,28 @@ export async function runWorkflowAction(
   const parsed = runWorkflowSchema.safeParse(input)
 
   if (!parsed.success) {
-    return failure("WORKFLOW_NOT_FOUND")
+    return failure("VALIDATION_ERROR", firstIssueMessage(parsed.error))
   }
 
-  const [workflow] = await db
-    .select({ id: workflows.id, name: workflows.name })
-    .from(workflows)
-    .where(
-      and(
-        eq(workflows.id, parsed.data.workflowId),
-        eq(workflows.organizationId, resolved.context.organizationId)
-      )
-    )
-    .limit(1)
+  const graph: WorkflowGraph = parsed.data.graph
 
-  if (!workflow) {
-    return failure("WORKFLOW_NOT_FOUND")
+  const validation = validateWorkflowGraph(graph)
+
+  if (!validation.ok) {
+    return failure("WORKFLOW_GRAPH_INVALID", validation.issues[0]?.message)
   }
+
+  const saved = await persistWorkflowGraph(
+    parsed.data.workflowId,
+    resolved.context.organizationId,
+    graph
+  )
+
+  if (saved.error) {
+    return saved
+  }
+
+  const workflow = saved.workflow
 
   try {
 

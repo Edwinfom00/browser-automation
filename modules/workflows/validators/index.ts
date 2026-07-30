@@ -44,11 +44,6 @@ export const deleteWorkflowSchema = z.object({
   workflowId: workflowIdSchema,
 })
 
-export const runWorkflowSchema = z.object({
-  workflowId: workflowIdSchema,
-})
-
-
 export const workflowRunIdSchema = z
   .string()
   .trim()
@@ -117,6 +112,12 @@ export const workflowGraphSchema = z.object({
 })
 
 export const saveWorkflowSchema = z.object({
+  workflowId: workflowIdSchema,
+  graph: workflowGraphSchema,
+})
+
+
+export const runWorkflowSchema = z.object({
   workflowId: workflowIdSchema,
   graph: workflowGraphSchema,
 })

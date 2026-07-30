@@ -29,6 +29,7 @@ export const WORKFLOW_ERROR_MESSAGES = {
   WORKFLOW_DELETE_FAILED: "We couldn't finish deleting this workflow. Try again.",
   WORKFLOW_SAVE_FAILED: "We couldn't save your changes. Try again.",
   WORKFLOW_RUN_FAILED: "We couldn't start this run. Try again.",
+  WORKFLOW_GRAPH_INVALID: "Fix the steps on the canvas before running this workflow.",
   WORKFLOW_RUN_NOT_FOUND: "That run no longer exists.",
   WORKFLOW_RUN_FINISHED: "That run already finished.",
   WORKFLOW_RUN_CANCEL_FAILED: "We couldn't cancel this run. Try again.",

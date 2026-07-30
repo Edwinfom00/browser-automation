@@ -22,7 +22,7 @@ export type RenameWorkflowInput = z.infer<typeof renameWorkflowSchema>
 
 export type DeleteWorkflowInput = z.infer<typeof deleteWorkflowSchema>
 
-export type RunWorkflowInput = z.infer<typeof runWorkflowSchema>
+export type RunWorkflowInput = z.input<typeof runWorkflowSchema>
 
 export type CancelWorkflowRunInput = z.infer<typeof cancelWorkflowRunSchema>
 
