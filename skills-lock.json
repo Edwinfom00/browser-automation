@@ -85,6 +85,18 @@
       "skillPath": "better-auth/organization/SKILL.md",
       "computedHash": "f8ea75816a22992c1601c21c0ee3ff8209798065072d76aec3e31eea8295af57"
     },
+    "steel-browser": {
+      "source": "steel-dev/skills",
+      "sourceType": "github",
+      "skillPath": "steel-browser/SKILL.md",
+      "computedHash": "07288d259fb95b60e33a282718e003f8217dcd0d5bc0bcbca89fac645fe12634"
+    },
+    "steel-developer": {
+      "source": "steel-dev/skills",
+      "sourceType": "github",
+      "skillPath": "steel-developer/SKILL.md",
+      "computedHash": "f5b4acc387514380c6f73d7b2f59ec2daee1e8f06e7f4f2bb9bc266b74d0d79b"
+    },
     "two-factor-authentication-best-practices": {
       "source": "better-auth/skills",
       "sourceType": "github",

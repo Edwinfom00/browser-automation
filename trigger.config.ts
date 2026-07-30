@@ -18,5 +18,5 @@ export default defineConfig({
       randomize: true,
     },
   },
-  dirs: ["trigger", "modules/workflows/tasks"],
+  dirs: ["modules"],
 });
