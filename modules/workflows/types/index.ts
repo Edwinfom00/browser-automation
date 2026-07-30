@@ -7,6 +7,7 @@ import type {
   WORKFLOW_GRAPH_ERROR_MESSAGES,
 } from "@/modules/workflows/constants"
 import type { StepNodeType } from "@/modules/workflows/nodes/node-registry"
+import type { WorkflowGraph as WorkflowGraphShape } from "@/modules/workflows/types/graph"
 import type {
   cancelWorkflowRunSchema,
   createWorkflowSchema,
@@ -66,6 +67,12 @@ export type WorkflowSummary = {
 
 export type WorkflowDetail = Workflow
 
+export type WorkflowWithGraph = {
+  id: string
+  name: string
+  graph: WorkflowGraphShape | null
+}
+
 export type WorkflowSaveResult = {
   workflow: WorkflowSummary
   graph: WorkflowGraphStatus
@@ -91,6 +98,9 @@ export type WorkflowRunCancellation = {
 export type WorkflowRunProgress = {
   label?: string
   progress?: number
+  currentStep?: string
+  stepIndex?: number
+  totalSteps?: number
 }
 
 export type WorkflowErrorCode = keyof typeof WORKFLOW_ERROR_MESSAGES

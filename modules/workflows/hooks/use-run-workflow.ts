@@ -14,8 +14,8 @@ import type {
   WorkflowRunHandle,
   WorkflowRunProgress,
 } from "@/modules/workflows/types"
+import type { runWorkflowTask } from "@/modules/workflows/tasks/run-workflow"
 import { runWorkflowSchema } from "@/modules/workflows/validators"
-import type { helloWorldTask } from "@/trigger/example"
 
 type UseRunWorkflowOptions = {
   onStarted?: (handle: WorkflowRunHandle) => void
@@ -39,13 +39,11 @@ export function useRunWorkflow({
   const [handle, setHandle] = useState<WorkflowRunHandle | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const { run, error: realtimeError } = useRealtimeRun<typeof helloWorldTask>(
+  const { run, error: realtimeError } = useRealtimeRun<typeof runWorkflowTask>(
     handle?.runId,
     {
       accessToken: handle?.publicAccessToken,
-      // Only subscribe once a run actually exists.
       enabled: handle !== null,
-      // The payload is just the message we sent — nothing to render from it.
       skipColumns: ["payload"],
       onComplete: (completed) => onFinished?.(completed.status),
     }

@@ -9,6 +9,7 @@ import { requireActiveOrganization } from "@/modules/organizations/server/organi
 import type {
   WorkflowDetail,
   WorkflowSummary,
+  WorkflowWithGraph,
 } from "@/modules/workflows/types"
 import { workflowIdSchema } from "@/modules/workflows/validators"
 
@@ -18,6 +19,24 @@ const summaryColumns = {
   name: workflows.name,
   createdAt: workflows.createdAt,
   updatedAt: workflows.updatedAt,
+}
+
+const graphColumns = {
+  id: workflows.id,
+  name: workflows.name,
+  graph: workflows.graph,
+}
+
+
+/**
+ * Every workflow read and write is scoped by organization, never by id alone —
+ * one place to get that pairing right.
+ */
+export function workflowScope(workflowId: string, organizationId: string) {
+  return and(
+    eq(workflows.id, workflowId),
+    eq(workflows.organizationId, organizationId)
+  )
 }
 
 
@@ -68,12 +87,26 @@ export async function getWorkflow(
   const [workflow] = await db
     .select()
     .from(workflows)
-    .where(
-      and(
-        eq(workflows.id, workflowId),
-        eq(workflows.organizationId, organizationId)
-      )
-    )
+    .where(workflowScope(workflowId, organizationId))
+    .limit(1)
+
+  return workflow ?? null
+}
+
+
+
+export async function getWorkflowGraph(
+  workflowId: string,
+  organizationId: string
+): Promise<WorkflowWithGraph | null> {
+  if (!workflowIdSchema.safeParse(workflowId).success) {
+    return null
+  }
+
+  const [workflow] = await db
+    .select(graphColumns)
+    .from(workflows)
+    .where(workflowScope(workflowId, organizationId))
     .limit(1)
 
   return workflow ?? null

@@ -16,7 +16,10 @@ import {
 } from "@/modules/workflows/constants"
 import { validateWorkflowGraph } from "@/modules/workflows/lib/validate-graph"
 import { randomWorkflowName } from "@/modules/workflows/lib/workflow-name"
-import { countWorkflows } from "@/modules/workflows/server/workflows"
+import {
+  countWorkflows,
+  workflowScope,
+} from "@/modules/workflows/server/workflows"
 import type {
   CancelWorkflowRunInput,
   CreateWorkflowInput,
@@ -40,7 +43,7 @@ import {
   runWorkflowSchema,
   saveWorkflowSchema,
 } from "@/modules/workflows/validators"
-import type { helloWorldTask } from "@/trigger/example"
+import type { runWorkflowTask } from "@/modules/workflows/tasks/run-workflow"
 
 type WorkflowActionFailure = { data: null; error: { code: WorkflowErrorCode; message: string } }
 
@@ -146,12 +149,7 @@ async function persistWorkflowGraph(
     ;[updated] = await db
       .update(workflows)
       .set({ graph })
-      .where(
-        and(
-          eq(workflows.id, workflowId),
-          eq(workflows.organizationId, organizationId)
-        )
-      )
+      .where(workflowScope(workflowId, organizationId))
       .returning(summaryColumns)
   } catch (error) {
     console.error("Failed to save a workflow graph", error)
@@ -234,10 +232,7 @@ export async function renameWorkflow(
     .update(workflows)
     .set({ name: parsed.data.name })
     .where(
-      and(
-        eq(workflows.id, parsed.data.workflowId),
-        eq(workflows.organizationId, resolved.context.organizationId)
-      )
+      workflowScope(parsed.data.workflowId, resolved.context.organizationId)
     )
     .returning(summaryColumns)
 
@@ -303,9 +298,9 @@ export async function deleteWorkflow(
     return failure("WORKFLOW_NOT_FOUND")
   }
 
-  const scope = and(
-    eq(workflows.id, parsed.data.workflowId),
-    eq(workflows.organizationId, resolved.context.organizationId)
+  const scope = workflowScope(
+    parsed.data.workflowId,
+    resolved.context.organizationId
   )
 
 
@@ -378,9 +373,12 @@ export async function runWorkflowAction(
 
   try {
 
-    const handle = await tasks.trigger<typeof helloWorldTask>(
-      "hello-world",
-      { message: `Running workflow ${workflow.name}` },
+    const handle = await tasks.trigger<typeof runWorkflowTask>(
+      "run-workflow",
+      {
+        workflowId: workflow.id,
+        organizationId: resolved.context.organizationId,
+      },
       { tags: [workflowTag(workflow.id), orgTag(resolved.context.organizationId)] }
     )
 
