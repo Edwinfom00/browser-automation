@@ -12,6 +12,7 @@ import type {
   deleteWorkflowSchema,
   renameWorkflowSchema,
   runWorkflowSchema,
+  saveWorkflowSchema,
 } from "@/modules/workflows/validators"
 
 export type CreateWorkflowInput = z.infer<typeof createWorkflowSchema>
@@ -21,6 +22,8 @@ export type RenameWorkflowInput = z.infer<typeof renameWorkflowSchema>
 export type DeleteWorkflowInput = z.infer<typeof deleteWorkflowSchema>
 
 export type RunWorkflowInput = z.infer<typeof runWorkflowSchema>
+
+export type SaveWorkflowInput = z.input<typeof saveWorkflowSchema>
 
 export type CreateWorkflowFieldErrors = FieldErrors<CreateWorkflowInput>
 
@@ -44,6 +47,13 @@ export type WorkflowGraphValidation =
   | { ok: false; steps: null; issues: WorkflowGraphIssue[] }
 
 
+
+export type WorkflowGraphStatus = {
+  ok: boolean
+  issues: WorkflowGraphIssue[]
+}
+
+
 export type WorkflowSummary = {
   id: string
   name: string
@@ -52,6 +62,11 @@ export type WorkflowSummary = {
 }
 
 export type WorkflowDetail = Workflow
+
+export type WorkflowSaveResult = {
+  workflow: WorkflowSummary
+  graph: WorkflowGraphStatus
+}
 
 export type WorkflowDeleteTarget = {
   id: string

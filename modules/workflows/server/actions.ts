@@ -1,7 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { tasks } from "@trigger.dev/sdk"
+import { runs, tasks } from "@trigger.dev/sdk"
 import { and, eq } from "drizzle-orm"
 
 import { db } from "@/lib/db"
@@ -14,6 +14,7 @@ import {
   WORKFLOW_ERROR_MESSAGES,
   WORKFLOW_LIMIT,
 } from "@/modules/workflows/constants"
+import { validateWorkflowGraph } from "@/modules/workflows/lib/validate-graph"
 import { randomWorkflowName } from "@/modules/workflows/lib/workflow-name"
 import { countWorkflows } from "@/modules/workflows/server/workflows"
 import type {
@@ -21,9 +22,12 @@ import type {
   DeleteWorkflowInput,
   RenameWorkflowInput,
   RunWorkflowInput,
+  SaveWorkflowInput,
   WorkflowActionResult,
   WorkflowErrorCode,
+  WorkflowGraph,
   WorkflowRunHandle,
+  WorkflowSaveResult,
   WorkflowSummary,
 } from "@/modules/workflows/types"
 import {
@@ -31,6 +35,7 @@ import {
   deleteWorkflowSchema,
   renameWorkflowSchema,
   runWorkflowSchema,
+  saveWorkflowSchema,
 } from "@/modules/workflows/validators"
 import type { helloWorldTask } from "@/trigger/example"
 
@@ -190,6 +195,58 @@ export async function renameWorkflow(
   return { data: updated, error: null }
 }
 
+export async function saveWorkflow(
+  input: SaveWorkflowInput
+): Promise<WorkflowActionResult<WorkflowSaveResult>> {
+  const resolved = await resolveWorkflowContext("update")
+
+  if (resolved.error) {
+    return resolved
+  }
+
+  const parsed = saveWorkflowSchema.safeParse(input)
+
+  if (!parsed.success) {
+    return failure("VALIDATION_ERROR", firstIssueMessage(parsed.error))
+  }
+
+  const graph: WorkflowGraph = parsed.data.graph
+
+  const validation = validateWorkflowGraph(graph)
+
+  let updated: WorkflowSummary | undefined
+
+  try {
+    ;[updated] = await db
+      .update(workflows)
+      .set({ graph })
+      .where(
+        and(
+          eq(workflows.id, parsed.data.workflowId),
+          eq(workflows.organizationId, resolved.context.organizationId)
+        )
+      )
+      .returning(summaryColumns)
+  } catch (error) {
+    console.error("Failed to save a workflow graph", error)
+    return failure("WORKFLOW_SAVE_FAILED")
+  }
+
+  if (!updated) {
+    return failure("WORKFLOW_NOT_FOUND")
+  }
+
+  revalidateWorkflows()
+
+  return {
+    data: {
+      workflow: updated,
+      graph: { ok: validation.ok, issues: validation.issues },
+    },
+    error: null,
+  }
+}
+
 export async function deleteWorkflow(
   input: DeleteWorkflowInput
 ): Promise<WorkflowActionResult<{ id: string }>> {
@@ -290,3 +347,4 @@ export async function runWorkflowAction(
     return failure("WORKFLOW_RUN_FAILED")
   }
 }
+

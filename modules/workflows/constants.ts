@@ -12,6 +12,13 @@ export const WORKFLOW_NAME_MAX_LENGTH = 64
 
 export const WORKFLOW_LIMIT = 100
 
+
+export const WORKFLOW_GRAPH_MAX_NODES = 200
+
+export const WORKFLOW_GRAPH_MAX_EDGES = 400
+
+export const WORKFLOW_NODE_VALUE_MAX_LENGTH = 2_000
+
 export const WORKFLOW_ERROR_MESSAGES = {
   UNAUTHORIZED: "Sign in again to continue.",
   NO_ACTIVE_ORGANIZATION: "Pick an organization before creating workflows.",
@@ -20,6 +27,7 @@ export const WORKFLOW_ERROR_MESSAGES = {
   WORKFLOW_LIMIT_REACHED: `Organizations are capped at ${WORKFLOW_LIMIT} workflows.`,
   VALIDATION_ERROR: "Check the highlighted fields and try again.",
   WORKFLOW_DELETE_FAILED: "We couldn't finish deleting this workflow. Try again.",
+  WORKFLOW_SAVE_FAILED: "We couldn't save your changes. Try again.",
   WORKFLOW_RUN_FAILED: "We couldn't start this run. Try again.",
   UNKNOWN_ERROR: "Something went wrong. Try again.",
 } as const
