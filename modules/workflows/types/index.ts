@@ -101,6 +101,8 @@ export type WorkflowRunProgress = {
   currentStep?: string
   stepIndex?: number
   totalSteps?: number
+  browserSessionId?: string
+  liveViewUrl?: string
 }
 
 export type WorkflowErrorCode = keyof typeof WORKFLOW_ERROR_MESSAGES

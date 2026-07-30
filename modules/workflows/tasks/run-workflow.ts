@@ -2,6 +2,10 @@ import { AbortTaskRunError, logger, metadata, schemaTask } from "@trigger.dev/sd
 import toposort from "toposort"
 import { z } from "zod"
 
+import {
+  createWorkflowBrowser,
+  type WorkflowBrowser,
+} from "@/modules/workflows/lib/browser-session"
 import { validateWorkflowGraph } from "@/modules/workflows/lib/validate-graph"
 import type { NodeType, StepNodeType } from "@/modules/workflows/nodes/node-registry"
 import { getWorkflowGraph } from "@/modules/workflows/server/workflows"
@@ -36,32 +40,39 @@ type StepContext = {
   workflowId: string
   index: number
   total: number
+  browser: WorkflowBrowser
 }
 
 type StepRunner = (context: StepContext) => Promise<StepOutcome>
 
 
-/**
- * One runner per node type. The `Record<NodeType, ...>` annotation keeps this
- * exhaustive: adding a node to the registry without teaching the executor how
- * to run it is a type error.
- *
- * TODO: every action below still describes the work instead of doing it. Swap
- * each body for the real browser task once those exist — the shape stays the
- * same, only the middle changes.
- */
+
+function normalizeUrl(raw: string): string {
+  const url = raw.trim()
+  return /^https?:\/\//i.test(url) ? url : `https://${url}`
+}
+
+
+
 const stepRunners: Record<NodeType, StepRunner> = {
   start: async () => ({
     status: "skipped",
     detail: "Trigger reached — nothing to execute.",
   }),
 
-  "open-url": async ({ values }) => {
-    const url = values.url?.trim() ?? ""
+  "open-url": async ({ values, browser }) => {
+    const url = normalizeUrl(values.url ?? "")
+    const page = await browser.page()
 
-    // TODO: hand this to the browser session task, e.g.
-    // await openUrlTask.triggerAndWait({ url }).unwrap()
-    return { status: "completed", detail: `Opened ${url}` }
+  
+    await page.goto(url, { waitUntil: "domcontentloaded" })
+
+    const title = (await page.title()).trim()
+
+    return {
+      status: "completed",
+      detail: title ? `Opened ${url} — "${title}"` : `Opened ${url}`,
+    }
   },
 }
 
@@ -109,10 +120,14 @@ function titleOf(node: StepNodeType): string {
 }
 
 
+
+const MAX_RUN_SECONDS = 900
+
+
 export const runWorkflowTask = schemaTask({
   id: "run-workflow",
   schema: runWorkflowPayloadSchema,
-  maxDuration: 900,
+  maxDuration: MAX_RUN_SECONDS,
   retry: { maxAttempts: 1 },
   run: async ({ workflowId, organizationId }) => {
     metadata.set("label", "Loading workflow").set("progress", 0)
@@ -153,42 +168,51 @@ export const runWorkflowTask = schemaTask({
       .set("totalSteps", total)
 
     const results: WorkflowStepResult[] = []
+    const browser = createWorkflowBrowser({
+      timeoutMs: MAX_RUN_SECONDS * 1000,
+    })
 
-    for (const [index, node] of plan.entries()) {
-      const title = titleOf(node)
-      const type = node.data.type
-      const position = `${index + 1}/${total}`
+    try {
+      for (const [index, node] of plan.entries()) {
+        const title = titleOf(node)
+        const type = node.data.type
+        const position = `${index + 1}/${total}`
 
-      metadata
-        .set("label", `${position} · ${title}`)
-        .set("stepIndex", index + 1)
-        .set("currentStep", title)
+        metadata
+          .set("label", `${position} · ${title}`)
+          .set("stepIndex", index + 1)
+          .set("currentStep", title)
 
-      logger.log(`Step ${position}: ${title}`, {
-        workflowId,
-        nodeId: node.id,
-        type,
-      })
-
-      const outcome = await logger.trace(`step:${title}`, () =>
-        stepRunners[type]({
-          node,
-          values: node.data.values,
+        logger.log(`Step ${position}: ${title}`, {
           workflowId,
-          index,
-          total,
+          nodeId: node.id,
+          type,
         })
-      )
 
-      results.push({ id: node.id, title, type, ...outcome })
+        const outcome = await logger.trace(`step:${title}`, () =>
+          stepRunners[type]({
+            node,
+            values: node.data.values,
+            workflowId,
+            index,
+            total,
+            browser,
+          })
+        )
 
-      logger.log(`Step ${position} ${outcome.status}: ${title}`, {
-        workflowId,
-        nodeId: node.id,
-        detail: outcome.detail,
-      })
+        results.push({ id: node.id, title, type, ...outcome })
 
-      metadata.set("progress", Math.round(((index + 1) / total) * 100))
+        logger.log(`Step ${position} ${outcome.status}: ${title}`, {
+          workflowId,
+          nodeId: node.id,
+          detail: outcome.detail,
+        })
+
+        metadata.set("progress", Math.round(((index + 1) / total) * 100))
+      }
+    } finally {
+      
+      await browser.release()
     }
 
     const executed = results.filter((step) => step.status === "completed").length

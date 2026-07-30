@@ -19,4 +19,10 @@ export default defineConfig({
     },
   },
   dirs: ["modules"],
+  build: {
+    // Both resolve platform-specific files at require time, which the bundler
+    // rewrites into something broken. Trigger installs them in the image
+    // instead, from package.json.
+    external: ["playwright-core", "steel-sdk"],
+  },
 });
