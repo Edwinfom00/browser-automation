@@ -18,6 +18,7 @@ import { validateWorkflowGraph } from "@/modules/workflows/lib/validate-graph"
 import { randomWorkflowName } from "@/modules/workflows/lib/workflow-name"
 import { countWorkflows } from "@/modules/workflows/server/workflows"
 import type {
+  CancelWorkflowRunInput,
   CreateWorkflowInput,
   DeleteWorkflowInput,
   RenameWorkflowInput,
@@ -26,11 +27,13 @@ import type {
   WorkflowActionResult,
   WorkflowErrorCode,
   WorkflowGraph,
+  WorkflowRunCancellation,
   WorkflowRunHandle,
   WorkflowSaveResult,
   WorkflowSummary,
 } from "@/modules/workflows/types"
 import {
+  cancelWorkflowRunSchema,
   createWorkflowSchema,
   deleteWorkflowSchema,
   renameWorkflowSchema,
@@ -119,6 +122,23 @@ async function resolveWorkflowContext(
 
 function revalidateWorkflows(): void {
   revalidatePath("/", "layout")
+}
+
+function workflowTag(workflowId: string): string {
+  return `workflow_${workflowId}`
+}
+
+function orgTag(organizationId: string): string {
+  return `org_${organizationId}`
+}
+
+async function retrieveRun(runId: string) {
+  try {
+    return await runs.retrieve(runId)
+  } catch (error) {
+    console.error("Failed to retrieve a workflow run", error)
+    return null
+  }
 }
 
 export async function createWorkflow(
@@ -335,7 +355,7 @@ export async function runWorkflowAction(
     const handle = await tasks.trigger<typeof helloWorldTask>(
       "hello-world",
       { message: `Running workflow ${workflow.name}` },
-      { tags: [`workflow_${workflow.id}`, `org_${resolved.context.organizationId}`] }
+      { tags: [workflowTag(workflow.id), orgTag(resolved.context.organizationId)] }
     )
 
     return {
@@ -345,6 +365,48 @@ export async function runWorkflowAction(
   } catch (error) {
     console.error("Failed to trigger workflow run", error)
     return failure("WORKFLOW_RUN_FAILED")
+  }
+}
+
+export async function cancelWorkflowRunAction(
+  input: CancelWorkflowRunInput
+): Promise<WorkflowActionResult<WorkflowRunCancellation>> {
+  const resolved = await resolveWorkflowContext("run")
+
+  if (resolved.error) {
+    return resolved
+  }
+
+  const parsed = cancelWorkflowRunSchema.safeParse(input)
+
+  if (!parsed.success) {
+    return failure("WORKFLOW_RUN_NOT_FOUND")
+  }
+
+  const { runId } = parsed.data
+
+  const run = await retrieveRun(runId)
+
+  if (!run) {
+    return failure("WORKFLOW_RUN_NOT_FOUND")
+  }
+
+  if (!run.tags.includes(orgTag(resolved.context.organizationId))) {
+    return failure("WORKFLOW_RUN_NOT_FOUND")
+  }
+
+
+  if (run.isCompleted) {
+    return failure("WORKFLOW_RUN_FINISHED")
+  }
+
+  try {
+    const canceled = await runs.cancel(runId)
+
+    return { data: { runId: canceled.id, status: "CANCELED" }, error: null }
+  } catch (error) {
+    console.error("Failed to cancel a workflow run", error)
+    return failure("WORKFLOW_RUN_CANCEL_FAILED")
   }
 }
 

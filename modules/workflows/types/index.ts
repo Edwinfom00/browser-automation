@@ -8,6 +8,7 @@ import type {
 } from "@/modules/workflows/constants"
 import type { StepNodeType } from "@/modules/workflows/nodes/node-registry"
 import type {
+  cancelWorkflowRunSchema,
   createWorkflowSchema,
   deleteWorkflowSchema,
   renameWorkflowSchema,
@@ -22,6 +23,8 @@ export type RenameWorkflowInput = z.infer<typeof renameWorkflowSchema>
 export type DeleteWorkflowInput = z.infer<typeof deleteWorkflowSchema>
 
 export type RunWorkflowInput = z.infer<typeof runWorkflowSchema>
+
+export type CancelWorkflowRunInput = z.infer<typeof cancelWorkflowRunSchema>
 
 export type SaveWorkflowInput = z.input<typeof saveWorkflowSchema>
 
@@ -76,6 +79,12 @@ export type WorkflowDeleteTarget = {
 export type WorkflowRunHandle = {
   runId: string
   publicAccessToken: string
+}
+
+
+export type WorkflowRunCancellation = {
+  runId: string
+  status: "CANCELED"
 }
 
 

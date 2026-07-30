@@ -49,6 +49,16 @@ export const runWorkflowSchema = z.object({
 })
 
 
+export const workflowRunIdSchema = z
+  .string()
+  .trim()
+  .regex(/^run_[a-z0-9]+$/i, "That run no longer exists")
+
+export const cancelWorkflowRunSchema = z.object({
+  runId: workflowRunIdSchema,
+})
+
+
 const nodeTypeSchema = z.enum(
   Object.keys(nodeRegistry) as [NodeType, ...NodeType[]]
 )
