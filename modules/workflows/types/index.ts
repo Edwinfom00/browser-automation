@@ -32,12 +32,17 @@ export type WorkflowSummary = {
 
 export type WorkflowDetail = Workflow
 
+export type WorkflowDeleteTarget = {
+  id: string
+  name?: string
+}
+
 export type WorkflowRunHandle = {
   runId: string
   publicAccessToken: string
 }
 
-// Shape written by the task via `metadata.set(...)`, read back over realtime.
+
 export type WorkflowRunProgress = {
   label?: string
   progress?: number

@@ -33,7 +33,7 @@ export function WorkflowShell({ workflowId }: { workflowId: string }) {
 
       <ResizableHandle withHandle />
 
-      <RightSidebar />
+      <RightSidebar workflowId={workflowId} />
     </ResizablePanelGroup>
   )
 }

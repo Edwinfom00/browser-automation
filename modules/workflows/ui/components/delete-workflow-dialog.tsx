@@ -14,14 +14,14 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { useDeleteWorkflow } from "@/modules/workflows/hooks/use-delete-workflow"
-import type { WorkflowSummary } from "@/modules/workflows/types"
+import type { WorkflowDeleteTarget } from "@/modules/workflows/types"
 
 
 export function DeleteWorkflowDialog({
   workflow,
   onOpenChange,
 }: {
-  workflow: WorkflowSummary | null
+  workflow: WorkflowDeleteTarget | null
   onOpenChange: (open: boolean) => void
 }) {
   const { remove, isPending, error, clearError } = useDeleteWorkflow({
@@ -49,7 +49,9 @@ export function DeleteWorkflowDialog({
             <LuTrash2 />
           </AlertDialogMedia>
 
-          <AlertDialogTitle>Delete {workflow?.name}?</AlertDialogTitle>
+          <AlertDialogTitle>
+            Delete {workflow?.name ?? "this workflow"}?
+          </AlertDialogTitle>
           <AlertDialogDescription>
             The workflow and its canvas are removed for everyone in the
             organization. This can&apos;t be undone.

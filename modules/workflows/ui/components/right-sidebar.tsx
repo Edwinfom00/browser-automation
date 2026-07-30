@@ -37,6 +37,7 @@ import {
   type StepNodeKind,
   type StepNodeType,
 } from "@/modules/workflows/nodes/node-registry"
+import { DeleteWorkflowDialog } from "@/modules/workflows/ui/components/delete-workflow-dialog"
 
 
 function NodeIcon({ type, className }: { type: NodeType; className?: string }) {
@@ -200,27 +201,39 @@ function Palette() {
   )
 }
 
-function ActionsMenu() {
+function ActionsMenu({ workflowId }: { workflowId: string }) {
+  const [isConfirming, setIsConfirming] = useState(false)
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button size="icon" variant="ghost">
-          <MoreHorizontal />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="min-w-48">
-        <DropdownMenuItem
-          variant="destructive"
-          className="text-xs [&_svg:not([class*='size-'])]:size-3.5"
-          onSelect={() => {
-            // TODO: delete the workflow, then navigate away.
-          }}
-        >
-          <Trash2 />
-          Delete workflow
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button size="icon" variant="ghost">
+            <MoreHorizontal />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="min-w-48">
+          <DropdownMenuItem
+            variant="destructive"
+            className="text-xs [&_svg:not([class*='size-'])]:size-3.5"
+            onSelect={() => setIsConfirming(true)}
+          >
+            <Trash2 />
+            Delete workflow
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+
+      <DeleteWorkflowDialog
+        workflow={isConfirming ? { id: workflowId } : null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsConfirming(false)
+          }
+        }}
+      />
+    </>
   )
 }
 
@@ -240,7 +253,7 @@ function RunButton() {
   )
 }
 
-export function RightSidebar() {
+export function RightSidebar({ workflowId }: { workflowId: string }) {
   const [tab, setTab] = useState("toolbar")
   const selected = useSelectedNode()
 
@@ -268,7 +281,7 @@ export function RightSidebar() {
     >
       <Tabs value={tab} onValueChange={setTab} className="size-full gap-0">
         <div className="flex items-center justify-between border-b border-border p-2">
-          <ActionsMenu />
+          <ActionsMenu workflowId={workflowId} />
           <RunButton />
         </div>
         <TabsList className="m-2 w-fit bg-background">

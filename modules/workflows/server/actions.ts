@@ -6,6 +6,7 @@ import { and, eq } from "drizzle-orm"
 
 import { db } from "@/lib/db"
 import { member } from "@/lib/db/auth-schema"
+import { deleteRoom } from "@/lib/liveblocks"
 import { workflows } from "@/lib/db/schema"
 import { getSession } from "@/modules/auth/server/session"
 import { roleCan } from "@/modules/organizations/server/organizations"
@@ -204,14 +205,33 @@ export async function deleteWorkflow(
     return failure("WORKFLOW_NOT_FOUND")
   }
 
+  const scope = and(
+    eq(workflows.id, parsed.data.workflowId),
+    eq(workflows.organizationId, resolved.context.organizationId)
+  )
+
+
+  const [workflow] = await db
+    .select({ id: workflows.id })
+    .from(workflows)
+    .where(scope)
+    .limit(1)
+
+  if (!workflow) {
+    return failure("WORKFLOW_NOT_FOUND")
+  }
+
+
+  try {
+    await deleteRoom(workflow.id)
+  } catch (error) {
+    console.error("Failed to delete the Liveblocks room for a workflow", error)
+    return failure("WORKFLOW_DELETE_FAILED")
+  }
+
   const [deleted] = await db
     .delete(workflows)
-    .where(
-      and(
-        eq(workflows.id, parsed.data.workflowId),
-        eq(workflows.organizationId, resolved.context.organizationId)
-      )
-    )
+    .where(scope)
     .returning({ id: workflows.id })
 
   if (!deleted) {
@@ -254,7 +274,7 @@ export async function runWorkflowAction(
   }
 
   try {
-   
+
     const handle = await tasks.trigger<typeof helloWorldTask>(
       "hello-world",
       { message: `Running workflow ${workflow.name}` },

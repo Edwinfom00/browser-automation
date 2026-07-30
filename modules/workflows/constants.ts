@@ -19,6 +19,7 @@ export const WORKFLOW_ERROR_MESSAGES = {
   WORKFLOW_NOT_FOUND: "That workflow no longer exists.",
   WORKFLOW_LIMIT_REACHED: `Organizations are capped at ${WORKFLOW_LIMIT} workflows.`,
   VALIDATION_ERROR: "Check the highlighted fields and try again.",
+  WORKFLOW_DELETE_FAILED: "We couldn't finish deleting this workflow. Try again.",
   WORKFLOW_RUN_FAILED: "We couldn't start this run. Try again.",
   UNKNOWN_ERROR: "Something went wrong. Try again.",
 } as const
